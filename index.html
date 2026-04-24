@@ -5,981 +5,937 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ふるのば メルマガ作成システム</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
+/* ─── DESIGN TOKENS ─── */
 :root {
-  --primary: #1A6B3C;
-  --primary-dark: #114827;
-  --primary-light: #EAF5EE;
-  --accent: #D4901A;
-  --accent-light: #FDF3E0;
-  --text: #1A2530;
-  --text-muted: #6B7A8D;
-  --border: #D5E8DC;
-  --bg: #F3F8F5;
-  --surface: #FFFFFF;
-  --surface2: #F7FAF8;
-  --red: #C0392B;
-  --step-active: var(--primary);
-  --radius: 10px;
-  --shadow: 0 2px 16px rgba(26,107,60,0.08);
+  --g:    #1A6B3C;
+  --gd:   #114827;
+  --gl:   #EAF5EE;
+  --ac:   #D4901A;
+  --al:   #FDF3E0;
+  --tx:   #1A2530;
+  --txm:  #6B7A8D;
+  --bd:   #D5E8DC;
+  --bg:   #F3F8F5;
+  --sur:  #FFFFFF;
+  --sur2: #F7FAF8;
+  --r:    10px;
+  --sh:   0 2px 16px rgba(26,107,60,.08);
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Zen Kaku Gothic New',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--tx);
+  min-height: 100vh;
+  font-size: 14px;
+}
 
-/* ── HEADER ── */
-.app-header{background:var(--primary-dark);padding:0 32px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;border-bottom:3px solid var(--accent)}
-.header-brand{display:flex;align-items:center;gap:14px}
-.header-logo{font-family:'Shippori Mincho',serif;font-size:22px;color:#fff;letter-spacing:.08em}
-.header-logo span{color:var(--accent);font-size:13px;letter-spacing:.12em;display:block;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:300;margin-top:-3px}
-.header-right{display:flex;align-items:center;gap:12px}
-.vol-badge{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);font-size:12px;padding:4px 14px;border-radius:100px;letter-spacing:.06em}
-.vol-badge.set{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+/* ─── HEADER ─── */
+.app-hd {
+  background: var(--gd);
+  padding: 0 32px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  border-bottom: 3px solid var(--ac);
+  box-shadow: 0 2px 12px rgba(0,0,0,.2);
+}
+.hd-brand { display: flex; align-items: center; gap: 14px; }
+.hd-logo {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 22px;
+  color: #fff;
+  letter-spacing: .08em;
+}
+.hd-logo span {
+  color: var(--ac);
+  font-size: 11px;
+  letter-spacing: .14em;
+  display: block;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
+  font-weight: 300;
+  margin-top: -2px;
+}
+.vol-pill {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.8);
+  font-size: 11px;
+  padding: 4px 14px;
+  border-radius: 100px;
+  transition: all .2s;
+}
+.vol-pill.set { background: var(--ac); border-color: var(--ac); color: #fff; font-weight: 700; }
 
-/* ── STEPPER ── */
-.stepper{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;gap:0}
-.step{display:flex;align-items:center;gap:0;cursor:pointer;padding:14px 0;flex:1;position:relative}
-.step:not(:last-child)::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);width:1px;height:24px;background:var(--border)}
-.step-inner{display:flex;align-items:center;gap:10px;padding:0 20px;opacity:.45;transition:opacity .2s}
-.step.active .step-inner,.step.done .step-inner{opacity:1}
-.step-num{width:26px;height:26px;border-radius:50%;background:var(--border);color:var(--text-muted);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
-.step.active .step-num{background:var(--primary);color:#fff}
-.step.done .step-num{background:var(--accent);color:#fff}
-.step-label{font-size:12px;font-weight:500;white-space:nowrap}
-.step.active .step-label{color:var(--primary);font-weight:700}
-.step.done .step-label{color:var(--accent)}
-.step-sub{font-size:10px;color:var(--text-muted)}
+/* ─── STEPPER ─── */
+.stepper {
+  background: var(--sur);
+  border-bottom: 1px solid var(--bd);
+  display: flex;
+}
+.stp {
+  flex: 1;
+  padding: 13px 8px 11px;
+  text-align: center;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  color: var(--txm);
+  font-size: 12px;
+  font-weight: 500;
+  transition: all .2s;
+  opacity: .45;
+}
+.stp small { display: block; font-size: 10px; font-weight: 400; margin-top: 2px; color: var(--txm); }
+.stp.active { opacity: 1; border-bottom-color: var(--g); color: var(--g); }
+.stp.done   { opacity: .7; color: var(--ac); border-bottom-color: var(--ac); }
 
-/* ── LAYOUT ── */
-.main{max-width:960px;margin:0 auto;padding:28px 20px 80px}
-.screen{display:none}
-.screen.active{display:block;animation:fadeIn .3s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+/* ─── LAYOUT ─── */
+.main { max-width: 980px; margin: 0 auto; padding: 28px 20px 90px; }
+.scr  { display: none; animation: fadeIn .3s ease; }
+.scr.on { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-/* ── CARDS & PANELS ── */
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px 28px;margin-bottom:20px;box-shadow:var(--shadow)}
-.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-.panel-icon{width:32px;height:32px;border-radius:8px;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-.panel-title{font-family:'Shippori Mincho',serif;font-size:16px;font-weight:700;color:var(--primary)}
-.panel-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+/* ─── PANEL ─── */
+.panel {
+  background: var(--sur);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 22px 26px;
+  margin-bottom: 18px;
+  box-shadow: var(--sh);
+}
+.ph { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--bd); }
+.pi { width: 30px; height: 30px; border-radius: 8px; background: var(--gl); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.ptitle { font-family: 'Shippori Mincho', serif; font-size: 15px; font-weight: 700; color: var(--g); }
+.psub   { font-size: 11px; color: var(--txm); margin-top: 2px; }
 
-/* ── FORM ELEMENTS ── */
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-.form-row.triple{grid-template-columns:1fr 1fr 1fr}
-.form-row.full{grid-template-columns:1fr}
-.form-group{display:flex;flex-direction:column;gap:5px}
-.form-label{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase}
-.form-label .req{color:var(--red);margin-left:3px}
-input[type=text],input[type=url],input[type=email],input[type=datetime-local],select,textarea{
-  border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;color:var(--text);background:var(--surface);outline:none;transition:border-color .2s,box-shadow .2s;width:100%}
-input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,107,60,.1)}
-textarea{resize:vertical;line-height:1.65}
-.char-count{font-size:11px;color:var(--text-muted);text-align:right;margin-top:3px}
-.char-count.warn{color:var(--accent);font-weight:700}
-.char-count.over{color:var(--red);font-weight:700}
-.radio-group{display:flex;gap:10px;flex-wrap:wrap}
-.radio-label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;padding:6px 12px;border:1px solid var(--border);border-radius:6px;transition:all .2s}
-.radio-label:hover{border-color:var(--primary);background:var(--primary-light)}
-.radio-label input{accent-color:var(--primary)}
-.radio-label.checked{border-color:var(--primary);background:var(--primary-light);font-weight:500}
+/* ─── PROG GRID ─── */
+.prog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 11px; }
+.pc {
+  background: var(--sur);
+  border: 1.5px solid var(--bd);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all .22s;
+  position: relative;
+  overflow: hidden;
+}
+.pc::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--bd); transition: background .2s; }
+.pc:hover   { border-color: var(--g); box-shadow: var(--sh); }
+.pc:hover::before { background: var(--g); }
+.pc.sel     { border-color: var(--g); background: var(--gl); }
+.pc.sel::before { background: var(--g); }
+.pc.draft::after {
+  content: '下書きあり';
+  position: absolute; top: 8px; right: 8px;
+  background: var(--al); color: var(--ac);
+  font-size: 9px; font-weight: 700;
+  padding: 2px 7px; border-radius: 3px;
+  border: 1px solid #f0d08a;
+}
+.pv   { font-size: 10px; font-weight: 700; color: var(--txm); letter-spacing: .1em; margin-bottom: 3px; }
+.pd   { font-family: 'Shippori Mincho', serif; font-size: 17px; font-weight: 700; color: var(--g); margin-bottom: 6px; }
+.pp   { display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 3px; font-weight: 700; letter-spacing: .06em; margin-bottom: 7px; }
+.p1   { background: #E8F4FF; color: #1A5EA8; }
+.p2   { background: #FFF0E8; color: #B04010; }
+.p3   { background: var(--gl); color: var(--g); }
+.pt   { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
+.pc2  { font-size: 11px; color: var(--txm); line-height: 1.45; }
 
-/* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;white-space:nowrap;letter-spacing:.04em}
-.btn-primary{background:linear-gradient(135deg,var(--primary),#23935A);color:#fff}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,107,60,.3)}
-.btn-accent{background:linear-gradient(135deg,var(--accent),#E8A020);color:#fff}
-.btn-accent:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(212,144,26,.3)}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-muted)}
-.btn-ghost:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
-.btn-danger{background:#FDF0EF;border:1px solid #F5C6C2;color:var(--red)}
-.btn-danger:hover{background:#F9E0DE}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important}
-.btn-sm{padding:6px 14px;font-size:12px}
-.btn-lg{padding:13px 32px;font-size:15px;border-radius:10px}
+/* ─── TABS ─── */
+.tabs { display: flex; border-bottom: 1px solid var(--bd); margin-bottom: 22px; }
+.tab {
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--txm);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab:hover { color: var(--g); }
+.tab.on    { color: var(--g); border-bottom-color: var(--g); }
+.tbadge {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--bd); color: var(--txm);
+  font-size: 9px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.tab.on .tbadge { background: var(--g); color: #fff; }
+.tc    { display: none; }
+.tc.on { display: block; animation: fadeIn .2s ease; }
 
-.row-btns{display:flex;gap:10px;align-items:center}
-.ml-auto{margin-left:auto}
+/* ─── FORM ─── */
+.fg  { display: flex; flex-direction: column; gap: 4px; margin-bottom: 11px; }
+.fr  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fr3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.fl  { font-size: 11px; font-weight: 700; color: var(--txm); letter-spacing: .06em; }
+.req { color: #c0392b; margin-left: 2px; }
+input[type=text], input[type=url], input[type=datetime-local],
+select, textarea {
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  padding: 8px 11px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--tx);
+  background: var(--sur);
+  width: 100%;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--g);
+  box-shadow: 0 0 0 3px rgba(26,107,60,.1);
+}
+textarea { resize: vertical; line-height: 1.65; }
+.cc  { font-size: 10px; color: var(--txm); text-align: right; margin-top: 3px; }
+.cc.warn { color: var(--ac); font-weight: 700; }
+.cc.over { color: #c0392b; font-weight: 700; }
 
-/* ── STEP 1: PROGRAMME TABLE ── */
-.prog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
-.prog-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:16px 18px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
-.prog-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--border);transition:background .2s}
-.prog-card:hover{border-color:var(--primary);box-shadow:var(--shadow)}
-.prog-card:hover::before{background:var(--primary)}
-.prog-card.selected{border-color:var(--primary);background:var(--primary-light)}
-.prog-card.selected::before{background:var(--primary)}
-.prog-card.has-draft::after{content:'下書きあり';position:absolute;top:10px;right:10px;background:var(--accent-light);color:var(--accent);font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.06em;border:1px solid #F0D08A}
-.prog-vol{font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
-.prog-date{font-family:'Shippori Mincho',serif;font-size:18px;font-weight:700;color:var(--primary);margin-bottom:6px}
-.prog-phase{display:inline-block;font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:.06em;margin-bottom:8px}
-.phase-1{background:#E8F4FF;color:#1A5EA8}
-.phase-2{background:#FFF0E8;color:#C05010}
-.phase-3{background:#EAF5EE;color:#1A6B3C}
-.prog-theme{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
-.prog-column{font-size:11px;color:var(--text-muted);line-height:1.5}
+/* ─── EVENT CARD ─── */
+.ev-card {
+  background: var(--sur2);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+.ev-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.ev-num  { font-size: 11px; font-weight: 700; color: var(--g); }
+.add-ev  {
+  border: 2px dashed var(--bd);
+  border-radius: var(--r);
+  padding: 13px;
+  text-align: center;
+  color: var(--txm);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .2s;
+}
+.add-ev:hover { border-color: var(--g); color: var(--g); background: var(--gl); }
 
-/* ── STEP 2: TABS ── */
-.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:24px}
-.tab{padding:10px 22px;font-size:13px;font-weight:700;color:var(--text-muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s;display:flex;align-items:center;gap:7px}
-.tab:hover{color:var(--primary)}
-.tab.active{color:var(--primary);border-bottom-color:var(--primary)}
-.tab-badge{width:18px;height:18px;border-radius:50%;background:var(--border);color:var(--text-muted);font-size:10px;display:flex;align-items:center;justify-content:center}
-.tab.active .tab-badge{background:var(--primary);color:#fff}
-.tab-content{display:none}
-.tab-content.active{display:block;animation:fadeIn .2s ease}
+/* ─── BUTTONS ─── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: none; border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: all .2s; white-space: nowrap; letter-spacing: .04em;
+}
+.btn-p  { background: linear-gradient(135deg, var(--g), #23935A); color: #fff; }
+.btn-p:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,107,60,.3); }
+.btn-p:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-a  { background: linear-gradient(135deg, var(--ac), #E8A020); color: #fff; }
+.btn-a:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(212,144,26,.3); }
+.btn-g  { background: transparent; border: 1px solid var(--bd); color: var(--txm); }
+.btn-g:hover { border-color: var(--g); color: var(--g); background: var(--gl); }
+.btn-d  { background: #fdf0ef; border: 1px solid #f5c6c2; color: #c0392b; }
+.btn-d:hover { background: #f9e0de; }
+.btn-sm { padding: 5px 13px; font-size: 11px; }
+.btn-lg { padding: 12px 30px; font-size: 14px; border-radius: 10px; }
+.row  { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+.ml   { margin-left: auto; }
 
-/* ── EVENT CARDS ── */
-.event-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;position:relative}
-.event-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.event-num{font-size:11px;font-weight:700;color:var(--primary);letter-spacing:.08em}
-.add-event-btn{border:2px dashed var(--border);border-radius:var(--radius);padding:14px;text-align:center;color:var(--text-muted);cursor:pointer;transition:all .2s;font-size:13px;font-weight:500}
-.add-event-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+/* ─── KW CHIPS ─── */
+.kw-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 13px; }
+.kc {
+  padding: 5px 13px; border-radius: 100px;
+  border: 1.5px solid var(--bd);
+  font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all .2s;
+  color: var(--txm); background: var(--sur);
+}
+.kc:hover { border-color: var(--g); color: var(--g); }
+.kc.on    { background: var(--g); color: #fff; border-color: var(--g); }
 
-/* ── NEWS PICKER ── */
-.kw-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-.kw-chip{padding:5px 14px;border-radius:100px;border:1.5px solid var(--border);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;user-select:none;color:var(--text-muted);background:var(--surface)}
-.kw-chip:hover{border-color:var(--primary);color:var(--primary)}
-.kw-chip.on{background:var(--primary);color:#fff;border-color:var(--primary)}
-.news-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
-.news-card{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;transition:all .22s;cursor:pointer;position:relative}
-.news-card:hover{border-color:var(--primary);box-shadow:var(--shadow)}
-.news-card.selected{border-color:#2ec4a0;background:#F0FAF8}
-.news-card.selected::after{content:'✓ 選択中';position:absolute;top:10px;right:10px;background:#2ec4a0;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px}
-.news-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
-.news-tag{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;letter-spacing:.06em}
-.tag-kw{background:var(--primary-light);color:var(--primary)}
-.tag-new{background:#FFF0E0;color:#C07000}
-.tag-rec{background:#E8FAF5;color:#1A8060}
-.news-stars{color:var(--accent);font-size:11px;letter-spacing:-1px}
-.news-title{font-size:13px;font-weight:700;line-height:1.45;margin-bottom:6px;color:var(--text)}
-.news-summary{font-size:11px;color:var(--text-muted);line-height:1.6;margin-bottom:8px}
-.news-reason{font-size:10px;background:linear-gradient(135deg,#F0F4FF,#F8F0FF);border-left:2px solid #6B9FE0;padding:6px 9px;border-radius:0 5px 5px 0;color:#3A4A70;line-height:1.5;margin-bottom:8px}
-.news-reason b{color:var(--primary);font-size:9px;letter-spacing:.04em}
-.news-footer{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--text-muted)}
-.news-sel-count{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);margin-top:10px}
-.sel-dot{width:8px;height:8px;border-radius:50%;background:var(--border)}
-.sel-dot.filled{background:#2ec4a0}
+/* ─── STATUS ─── */
+.st { display: none; align-items: center; gap: 9px; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
+.st.load { display: flex; background: #e8f4ff; color: #1a5ea8; border: 1px solid #b8d8f8; }
+.st.err  { display: flex; background: #fdf0ef; color: #c0392b; border: 1px solid #f5c6c2; }
+.sp { width: 14px; height: 14px; border: 2px solid rgba(26,94,168,.2); border-top-color: #1a5ea8; border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── STATUS BAR ── */
-.status{display:none;align-items:center;gap:10px;padding:11px 16px;border-radius:8px;font-size:13px;margin:10px 0}
-.status.loading{display:flex;background:#E8F4FF;color:#1A5EA8;border:1px solid #B8D8F8}
-.status.error{display:flex;background:#FDF0EF;color:var(--red);border:1px solid #F5C6C2}
-.spinner{width:15px;height:15px;border:2px solid rgba(26,94,168,.2);border-top-color:#1A5EA8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* ─── NEWS GRID ─── */
+.ng  { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-top: 14px; }
+.nc  { background: var(--sur2); border: 1.5px solid var(--bd); border-radius: var(--r); padding: 13px 15px; cursor: pointer; transition: all .22s; position: relative; }
+.nc:hover  { border-color: var(--g); box-shadow: var(--sh); }
+.nc.sel    { border-color: #2ec4a0; background: #f0faf8; }
+.nc.sel::after { content: '✓ 選択中'; position: absolute; top: 8px; right: 8px; background: #2ec4a0; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
+.ntags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 7px; }
+.nt   { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; letter-spacing: .06em; }
+.nt-k { background: var(--gl); color: var(--g); }
+.nt-n { background: #fff0e0; color: #c07000; }
+.nt-r { background: #e8faf5; color: #1a8060; }
+.nstars  { font-size: 11px; color: var(--ac); letter-spacing: -1px; }
+.ntitle  { font-size: 13px; font-weight: 700; line-height: 1.45; margin-bottom: 6px; }
+.nsum    { font-size: 11px; color: var(--txm); line-height: 1.6; margin-bottom: 7px; }
+.nrsn    { font-size: 10px; background: linear-gradient(135deg, #f0f4ff, #f8f0ff); border-left: 2px solid #6b9fe0; padding: 6px 9px; border-radius: 0 5px 5px 0; color: #3a4a70; line-height: 1.5; margin-bottom: 8px; }
+.nrsn b  { color: var(--g); font-size: 9px; letter-spacing: .04em; }
+.nft     { display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--txm); }
+.sel-bar { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--txm); margin-top: 9px; }
+.dot     { width: 8px; height: 8px; border-radius: 50%; background: var(--bd); }
+.dot.f   { background: #2ec4a0; }
 
-/* ── COLUMN ── */
-.column-meta{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--primary-light);border-radius:8px;margin-bottom:14px;border:1px solid var(--border)}
-.column-meta-label{font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.08em}
-.column-meta-val{font-size:13px;font-weight:700;color:var(--primary)}
+/* ─── COLUMN ─── */
+.col-meta { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--gl); border-radius: 8px; margin-bottom: 13px; border: 1px solid var(--bd); }
+.cm-lbl   { font-size: 10px; font-weight: 700; color: var(--txm); }
+.cm-val   { font-size: 13px; font-weight: 700; color: var(--g); }
 
-/* ── STEP 3: PREVIEW ── */
-.preview-toolbar{display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
-.preview-mode-btn{padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:12px;font-family:inherit;cursor:pointer;font-weight:500;color:var(--text-muted);transition:all .2s}
-.preview-mode-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-.preview-frame-wrap{background:#E8E8E8;border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:16px;min-height:400px}
-.preview-frame{border:none;background:#fff;border-radius:4px;box-shadow:0 4px 32px rgba(0,0,0,.15);transition:width .3s}
-.preview-frame.desktop{width:100%;max-width:660px}
-.preview-frame.mobile{width:390px;max-width:100%}
-.subject-row{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:16px}
-.subject-label{font-size:11px;font-weight:700;color:var(--text-muted);white-space:nowrap;letter-spacing:.06em}
-.subject-input{flex:1;border:none;font-size:14px;font-family:'Shippori Mincho',serif;font-weight:600;color:var(--text);outline:none;background:transparent}
+/* ─── PREVIEW ─── */
+.prev-tb { display: flex; align-items: center; gap: 9px; padding: 11px 16px; background: var(--sur); border: 1px solid var(--bd); border-radius: var(--r); margin-bottom: 14px; }
+.pmode   { padding: 6px 15px; border-radius: 7px; border: 1px solid var(--bd); background: transparent; font-size: 12px; font-family: inherit; cursor: pointer; color: var(--txm); transition: all .2s; }
+.pmode.on { background: var(--g); color: #fff; border-color: var(--g); }
+.prev-wrap { background: #e0e0e0; border-radius: var(--r); padding: 18px; text-align: center; margin-bottom: 14px; min-height: 400px; }
+.pframe   { border: none; background: #fff; border-radius: 4px; box-shadow: 0 4px 28px rgba(0,0,0,.16); transition: width .3s; width: 100%; max-width: 640px; }
+.pframe.mob { max-width: 390px; }
+.subj-row { display: flex; align-items: center; gap: 11px; padding: 11px 16px; background: var(--sur); border: 1px solid var(--bd); border-radius: var(--r); margin-bottom: 14px; }
+.subj-lbl { font-size: 11px; font-weight: 700; color: var(--txm); white-space: nowrap; letter-spacing: .06em; }
+.subj-in  { flex: 1; border: none; font-size: 14px; font-family: 'Shippori Mincho', serif; font-weight: 600; color: var(--tx); outline: none; background: transparent; }
 
-/* ── STEP 4: OUTPUT ── */
-.output-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.output-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:22px;text-align:center;cursor:pointer;transition:all .25s}
-.output-card:hover{border-color:var(--primary);box-shadow:var(--shadow);transform:translateY(-2px)}
-.output-card.done{border-color:#2ec4a0;background:#F0FAF8}
-.output-icon{font-size:32px;margin-bottom:10px}
-.output-title{font-size:14px;font-weight:700;margin-bottom:6px;color:var(--text)}
-.output-desc{font-size:12px;color:var(--text-muted);line-height:1.55}
+/* ─── OUTPUT ─── */
+.out-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.oc {
+  background: var(--sur);
+  border: 2px solid var(--bd);
+  border-radius: var(--r);
+  padding: 22px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .25s;
+}
+.oc:hover { border-color: var(--g); box-shadow: var(--sh); transform: translateY(-2px); }
+.oc.done  { border-color: #2ec4a0; background: #f0faf8; }
+.oi  { font-size: 30px; margin-bottom: 10px; }
+.ott { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.otd { font-size: 12px; color: var(--txm); line-height: 1.55; }
+.step-guide { font-size: 12px; color: var(--txm); line-height: 2.1; padding: 16px 20px; background: var(--sur2); border-radius: var(--r); border: 1px solid var(--bd); margin-top: 16px; }
 
-/* ── TOAST ── */
-.toast{position:fixed;bottom:24px;right:24px;background:var(--primary-dark);color:#fff;padding:11px 20px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 24px rgba(0,0,0,.2);transform:translateY(60px);opacity:0;transition:all .3s;z-index:999;border-left:3px solid var(--accent);max-width:320px}
-.toast.show{transform:translateY(0);opacity:1}
+/* ─── NAV FOOTER ─── */
+.nav-footer {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--sur);
+  border-top: 1px solid var(--bd);
+  padding: 12px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  z-index: 100;
+  box-shadow: 0 -4px 16px rgba(26,107,60,.07);
+}
+.nav-info { font-size: 12px; color: var(--txm); }
 
-/* ── NAV FOOTER ── */
-.nav-footer{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;z-index:100;box-shadow:0 -4px 16px rgba(26,107,60,.06)}
-.nav-info{font-size:12px;color:var(--text-muted)}
+/* ─── GENERATING OVERLAY ─── */
+.gen-ov {
+  position: fixed; inset: 0;
+  background: rgba(17,72,39,.88);
+  z-index: 500;
+  display: none; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
+}
+.gen-ov.on { display: flex; }
+.gen-sp { width: 46px; height: 46px; border: 4px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+.gen-tx { color: #fff; font-size: 15px; font-weight: 500; text-align: center; line-height: 1.7; }
 
-/* ── GENERATING OVERLAY ── */
-.gen-overlay{position:fixed;inset:0;background:rgba(26,72,39,.85);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
-.gen-overlay.show{display:flex}
-.gen-spinner{width:48px;height:48px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
-.gen-text{color:#fff;font-size:16px;font-weight:500;text-align:center;line-height:1.6}
+/* ─── TOAST ─── */
+.toast {
+  position: fixed; bottom: 26px; right: 26px;
+  background: var(--gd); color: #fff;
+  padding: 11px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  box-shadow: 0 4px 24px rgba(0,0,0,.2);
+  border-left: 3px solid var(--ac);
+  transform: translateY(60px); opacity: 0;
+  transition: all .3s; z-index: 999; max-width: 320px;
+}
+.toast.on { transform: translateY(0); opacity: 1; }
 
-@media(max-width:640px){
-  .news-grid{grid-template-columns:1fr}
-  .output-cards{grid-template-columns:1fr}
-  .form-row{grid-template-columns:1fr}
-  .prog-grid{grid-template-columns:1fr}
-  .stepper{padding:0 12px}
-  .step-sub{display:none}
-  .main{padding:16px 12px 80px}
+/* ─── GAS SETUP BANNER ─── */
+.setup-banner {
+  background: #fff8e1; border: 1px solid #ffe082;
+  border-radius: var(--r); padding: 14px 18px;
+  margin-bottom: 20px; font-size: 13px; line-height: 1.7;
+  display: none;
+}
+.setup-banner.show { display: block; }
+.setup-banner strong { color: var(--ac); }
+
+@media (max-width: 640px) {
+  .ng, .out-grid { grid-template-columns: 1fr; }
+  .fr, .fr3       { grid-template-columns: 1fr; }
+  .prog-grid       { grid-template-columns: 1fr; }
+  .main            { padding: 16px 12px 90px; }
+  .app-hd          { padding: 0 16px; }
+  .nav-footer      { padding: 12px 16px; }
 }
 </style>
 </head>
 <body>
 
+<!-- ══════════════════════════════════════
+     GAS URL 設定（ここだけ変更してください）
+══════════════════════════════════════ -->
+<script>
+// ▼ GAS WebApp のデプロイURLを貼り付けてください
+const GAS_URL = 'https://script.google.com/a/macros/agent-network.com/s/AKfycbxOK7vwIdBUbIjZLJzexE9PZGIlj9yPF0LAcv89VdhcaDQzlxv2m-rcR_2AEk3ZiWJM9g/exec';
+</script>
+
 <!-- HEADER -->
-<header class="app-header">
-  <div class="header-brand">
-    <div class="header-logo">ふるのば<span>MAILMAG SYSTEM</span></div>
+<header class="app-hd">
+  <div class="hd-brand">
+    <div class="hd-logo">ふるのば<span>MAILMAG SYSTEM</span></div>
   </div>
-  <div class="header-right">
-    <div class="vol-badge" id="headerBadge">号数未選択</div>
-  </div>
+  <div class="vol-pill" id="hbadge">号数未選択</div>
 </header>
 
 <!-- STEPPER -->
 <div class="stepper">
-  <div class="step active" data-step="1" onclick="goStep(1)">
-    <div class="step-inner">
-      <div class="step-num">1</div>
-      <div><div class="step-label">号数選択</div><div class="step-sub">番組表</div></div>
-    </div>
-  </div>
-  <div class="step" data-step="2" onclick="goStep(2)">
-    <div class="step-inner">
-      <div class="step-num">2</div>
-      <div><div class="step-label">コンテンツ入力</div><div class="step-sub">イベント・ニュース・コラム</div></div>
-    </div>
-  </div>
-  <div class="step" data-step="3" onclick="goStep(3)">
-    <div class="step-inner">
-      <div class="step-num">3</div>
-      <div><div class="step-label">プレビュー</div><div class="step-sub">HTML確認・編集</div></div>
-    </div>
-  </div>
-  <div class="step" data-step="4" onclick="goStep(4)">
-    <div class="step-inner">
-      <div class="step-num">4</div>
-      <div><div class="step-label">出力・配信</div><div class="step-sub">HubSpot / Drive</div></div>
-    </div>
-  </div>
+  <div class="stp active" onclick="gostep(1)">号数選択<small>番組表</small></div>
+  <div class="stp"        onclick="gostep(2)">コンテンツ入力<small>3ブロック</small></div>
+  <div class="stp"        onclick="gostep(3)">プレビュー<small>HTML確認</small></div>
+  <div class="stp"        onclick="gostep(4)">出力<small>HubSpot</small></div>
 </div>
 
 <div class="main">
 
-<!-- ═══════════════════════════════════════════
-     STEP 1: 号数選択
-═══════════════════════════════════════════ -->
-<div class="screen active" id="screen1">
-  <div class="panel">
-    <div class="panel-head">
-      <div class="panel-icon">📅</div>
-      <div><div class="panel-title">メールマガジン 番組表</div><div class="panel-sub">配信する号をクリックして選択してください</div></div>
-    </div>
-    <div class="prog-grid" id="progGrid"></div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     STEP 2: コンテンツ入力
-═══════════════════════════════════════════ -->
-<div class="screen" id="screen2">
-  <div class="tabs">
-    <div class="tab active" data-tab="events" onclick="switchTab('events')">
-      <span>📅 イベント情報</span><div class="tab-badge" id="eventsBadge">0</div>
-    </div>
-    <div class="tab" data-tab="news" onclick="switchTab('news')">
-      <span>📰 ニュースピック</span><div class="tab-badge" id="newsBadge">0</div>
-    </div>
-    <div class="tab" data-tab="column" onclick="switchTab('column')">
-      <span>📚 コラム</span><div class="tab-badge" id="columnBadge">0</div>
-    </div>
+  <!-- GAS未設定バナー -->
+  <div class="setup-banner" id="setupBanner">
+    ⚠️ <strong>初期設定が必要です：</strong>
+    index.html の <code>GAS_URL</code> にGASのデプロイURLを貼り付けてください。
+    詳しくはREADME.mdを参照してください。
   </div>
 
-  <!-- TAB: EVENTS -->
-  <div class="tab-content active" id="tab-events">
-    <div id="eventList"></div>
-    <div class="add-event-btn" id="addEventBtn" onclick="addEvent()">＋ イベントを追加（最大3件）</div>
-  </div>
-
-  <!-- TAB: NEWS -->
-  <div class="tab-content" id="tab-news">
+  <!-- STEP 1: 番組表 -->
+  <div class="scr on" id="s1">
     <div class="panel">
-      <div class="panel-head">
-        <div class="panel-icon">🔍</div>
-        <div><div class="panel-title">ニュース収集</div><div class="panel-sub">キーワードを選んで最新ニュースを自動収集します</div></div>
+      <div class="ph">
+        <div class="pi">📅</div>
+        <div><div class="ptitle">メールマガジン 番組表</div><div class="psub">配信する号をクリックして選択してください</div></div>
       </div>
-      <div class="kw-chips" id="kwChips"></div>
-      <div style="display:flex;gap:10px;margin-bottom:12px">
-        <input type="text" id="customKw" placeholder="追加キーワード（任意）" style="flex:1">
-        <button class="btn btn-primary" onclick="fetchNews()" id="fetchNewsBtn">🔍 ニュースを収集する</button>
-      </div>
-      <div class="status" id="newsStatus"><div class="spinner"></div><span id="newsStatusText"></span></div>
-      <div class="news-sel-count" id="newsSelCount" style="display:none">
-        選択数：<span id="newsSelDots"></span><span id="newsSelText">0件</span>（2〜3件を推奨）
-      </div>
-      <div class="news-grid" id="newsGrid"></div>
+      <div class="prog-grid" id="pgrid"></div>
     </div>
   </div>
 
-  <!-- TAB: COLUMN -->
-  <div class="tab-content" id="tab-column">
-    <div class="panel">
-      <div class="panel-head">
-        <div class="panel-icon">📝</div>
-        <div><div class="panel-title">コラム（お役立ち情報）</div><div class="panel-sub">今号のテーマに合わせたコラムをAIが草案生成します</div></div>
-      </div>
-      <div class="column-meta">
-        <div><div class="column-meta-label">今号のテーマ</div><div class="column-meta-val" id="columnTheme">—</div></div>
-      </div>
-      <div class="row-btns" style="margin-bottom:12px">
-        <button class="btn btn-primary" onclick="generateColumn()" id="genColumnBtn">✨ 草案を生成する</button>
-        <button class="btn btn-ghost btn-sm" onclick="regenColumn()">↺ 再生成</button>
-        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('columnText').value='';updateColumnCount()">クリア</button>
-      </div>
-      <div class="status" id="columnStatus"><div class="spinner"></div><span>コラムを生成中...</span></div>
-      <textarea id="columnText" rows="14" placeholder="「草案を生成する」を押すとここにコラム本文が生成されます" oninput="updateColumnCount()"></textarea>
-      <div class="char-count" id="columnCount">0 / 800字</div>
+  <!-- STEP 2: コンテンツ入力 -->
+  <div class="scr" id="s2">
+    <div class="tabs">
+      <div class="tab on" onclick="swtab('ev',this)">📅 イベント情報<div class="tbadge" id="evb">0</div></div>
+      <div class="tab"    onclick="swtab('nw',this)">📰 ニュースピック<div class="tbadge" id="nwb">0</div></div>
+      <div class="tab"    onclick="swtab('col',this)">📚 コラム<div class="tbadge" id="colb">0</div></div>
     </div>
-  </div>
-</div>
 
-<!-- ═══════════════════════════════════════════
-     STEP 3: プレビュー
-═══════════════════════════════════════════ -->
-<div class="screen" id="screen3">
-  <div class="subject-row">
-    <span class="subject-label">件名</span>
-    <input class="subject-input" id="subjectInput" type="text" placeholder="件名を入力...">
-  </div>
-  <div class="preview-toolbar">
-    <button class="preview-mode-btn active" onclick="setPreviewMode('desktop',this)">🖥 デスクトップ</button>
-    <button class="preview-mode-btn" onclick="setPreviewMode('mobile',this)">📱 モバイル</button>
-    <div class="ml-auto" style="display:flex;gap:8px">
-      <button class="btn btn-ghost btn-sm" onclick="regenerateHTML()">↺ 再生成</button>
+    <!-- イベント -->
+    <div class="tc on" id="tc-ev">
+      <div id="evlist"></div>
+      <div class="add-ev" id="addev" onclick="addev()">＋ イベントを追加（最大3件）</div>
     </div>
-  </div>
-  <div class="preview-frame-wrap">
-    <iframe id="previewFrame" class="preview-frame desktop" height="700" sandbox="allow-same-origin"></iframe>
-  </div>
-</div>
 
-<!-- ═══════════════════════════════════════════
-     STEP 4: 出力
-═══════════════════════════════════════════ -->
-<div class="screen" id="screen4">
-  <div class="panel">
-    <div class="panel-head">
-      <div class="panel-icon">🚀</div>
-      <div><div class="panel-title">出力・配信</div><div class="panel-sub">完成したメルマガを出力してください</div></div>
-    </div>
-    <div class="output-cards">
-      <div class="output-card" onclick="copyHubspotHTML()" id="outCardA">
-        <div class="output-icon">📋</div>
-        <div class="output-title">HubSpot用HTMLをコピー</div>
-        <div class="output-desc">HTMLをクリップボードにコピーします。HubSpotのメールエディタ「ソースコード」欄に貼り付けてください。</div>
-      </div>
-      <div class="output-card" onclick="copyPlainText()" id="outCardB">
-        <div class="output-icon">📄</div>
-        <div class="output-title">テキスト版をコピー</div>
-        <div class="output-desc">HTMLタグを除いたプレーンテキスト版をコピーします。テキストメールや社内共有に使用できます。</div>
+    <!-- ニュース -->
+    <div class="tc" id="tc-nw">
+      <div class="panel">
+        <div class="ph"><div class="pi">🔍</div><div><div class="ptitle">ニュース収集</div><div class="psub">キーワードを選んで最新ニュースを自動収集します</div></div></div>
+        <div class="kw-chips" id="kwchips"></div>
+        <div class="row" style="margin-bottom:12px">
+          <input type="text" id="ckw" placeholder="追加キーワード（任意）" style="flex:1">
+          <button class="btn btn-p" id="fnbtn" onclick="fetchNews()">🔍 ニュースを収集する</button>
+        </div>
+        <div class="st" id="nwst"><div class="sp"></div><span id="nwstx"></span></div>
+        <div class="sel-bar" id="selbar" style="display:none">
+          選択：<div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div>
+          <span id="selnum">0件</span>（2〜3件を推奨）
+        </div>
+        <div class="ng" id="ngrid"></div>
       </div>
     </div>
-    <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;font-weight:700;letter-spacing:.06em">HUBSPOT 貼り付け手順</div>
-      <div style="font-size:12px;color:var(--text-muted);line-height:2">
-        1. HubSpot → マーケティング → メール → 新規メール作成<br>
-        2. メールエディタ右上の「ソースコード（&lt;/&gt;）」をクリック<br>
-        3. コピーしたHTMLを貼り付けて「適用」<br>
-        4. 件名を入力：<strong id="subjectPreview" style="color:var(--text)">—</strong><br>
-        5. 送信テストを実施してから本配信
+
+    <!-- コラム -->
+    <div class="tc" id="tc-col">
+      <div class="panel">
+        <div class="ph"><div class="pi">📝</div><div><div class="ptitle">コラム（お役立ち情報）</div><div class="psub">今号のテーマに合わせてAIが草案を生成します</div></div></div>
+        <div class="col-meta"><div class="cm-lbl">今号のテーマ</div><div class="cm-val" id="coltheme">—</div></div>
+        <div class="row" style="margin-bottom:12px">
+          <button class="btn btn-p" id="gcolbtn" onclick="genCol()">✨ 草案を生成する</button>
+          <button class="btn btn-g btn-sm" onclick="genCol(true)">↺ 再生成</button>
+          <button class="btn btn-g btn-sm" onclick="document.getElementById('coltxt').value='';updcc()">クリア</button>
+        </div>
+        <div class="st" id="colst"><div class="sp"></div><span>コラムを生成中...</span></div>
+        <textarea id="coltxt" rows="14" placeholder="「草案を生成する」を押すとここにコラム本文が生成されます" oninput="updcc();svd()"></textarea>
+        <div class="cc" id="colcc">0 / 800字</div>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- STEP 3: プレビュー -->
+  <div class="scr" id="s3">
+    <div class="subj-row">
+      <span class="subj-lbl">件名</span>
+      <input class="subj-in" id="subjin" type="text" placeholder="件名を入力...">
+    </div>
+    <div class="prev-tb">
+      <button class="pmode on" onclick="setpm('dt',this)">🖥 デスクトップ</button>
+      <button class="pmode"    onclick="setpm('mb',this)">📱 モバイル</button>
+      <div class="ml"><button class="btn btn-g btn-sm" onclick="genHtml()">↺ 再生成</button></div>
+    </div>
+    <div class="prev-wrap">
+      <iframe id="pframe" class="pframe" height="680" sandbox="allow-same-origin"></iframe>
+    </div>
+  </div>
+
+  <!-- STEP 4: 出力 -->
+  <div class="scr" id="s4">
+    <div class="out-grid">
+      <div class="oc" id="oca" onclick="copHub()">
+        <div class="oi">📋</div>
+        <div class="ott">HubSpot用HTMLをコピー</div>
+        <div class="otd">メールエディタの「ソースコード」欄に貼り付けてください</div>
+      </div>
+      <div class="oc" id="ocb" onclick="copTxt()">
+        <div class="oi">📄</div>
+        <div class="ott">テキスト版をコピー</div>
+        <div class="otd">HTMLタグを除いたプレーンテキストをコピーします</div>
+      </div>
+    </div>
+    <div class="step-guide">
+      <strong>HubSpot 貼り付け手順</strong><br>
+      1. HubSpot → マーケティング → メール → 新規メール作成<br>
+      2. メールエディタ右上の「ソースコード（&lt;/&gt;）」をクリック<br>
+      3. コピーしたHTMLを貼り付けて「適用」<br>
+      4. 件名を入力：<strong id="subjprev" style="color:var(--tx)">—</strong><br>
+      5. 送信テストを実施してから本配信
+    </div>
+  </div>
 
 </div><!-- /main -->
 
 <!-- NAV FOOTER -->
 <div class="nav-footer">
-  <button class="btn btn-ghost" id="btnBack" onclick="navBack()" style="display:none">← 戻る</button>
-  <div class="nav-info" id="navInfo">号数を選択してください</div>
-  <button class="btn btn-primary btn-lg" id="btnNext" onclick="navNext()" disabled>次へ →</button>
+  <button class="btn btn-g" id="btnback" onclick="navback()" style="display:none">← 戻る</button>
+  <div class="nav-info" id="navinfo">号数を選択してください</div>
+  <button class="btn btn-p btn-lg" id="btnnext" onclick="navnext()" disabled>次へ →</button>
 </div>
 
 <!-- GENERATING OVERLAY -->
-<div class="gen-overlay" id="genOverlay">
-  <div class="gen-spinner"></div>
-  <div class="gen-text" id="genText">HTMLメールを生成中...<br>少しお待ちください</div>
+<div class="gen-ov" id="genov">
+  <div class="gen-sp"></div>
+  <div class="gen-tx" id="gentx">処理中...<br>少しお待ちください</div>
 </div>
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════
-// DATA
-// ═══════════════════════════════════════════
-
-const PROGRAMME = [
-  {vol:1, date:"4/29(火)", phase:1, mainTitle:"創刊号", columnTheme:"公民共創とは何か？", keywords:["公民共創","公民連携","地方創生"]},
-  {vol:2, date:"5/6(火)",  phase:1, mainTitle:"連携vs共創の違い特集", columnTheme:"公民連携vs公民共創の違い", keywords:["公民共創","公民連携","官民連携"]},
-  {vol:3, date:"5/13(火)", phase:1, mainTitle:"自治体課題紹介", columnTheme:"自治体が抱える3大課題", keywords:["公民共創","自治体DX","地方創生"]},
-  {vol:4, date:"5/20(火)", phase:1, mainTitle:"企業インタビュー①", columnTheme:"企業が公民連携に取り組む理由", keywords:["公民連携","企業版ふるさと納税","ESG"]},
-  {vol:5, date:"5/27(火)", phase:2, mainTitle:"ReversePitch開催レポート", columnTheme:"リバースピッチとは何か", keywords:["リバースピッチ","公民共創","公民連携"]},
-  {vol:6, date:"6/3(火)",  phase:2, mainTitle:"企業版ふるさと納税活用ガイド", columnTheme:"企業版ふるさと納税の基本と活用法", keywords:["企業版ふるさと納税","地方創生","官民連携"]},
-  {vol:7, date:"6/10(火)", phase:2, mainTitle:"自治体インタビュー①", columnTheme:"自治体の公民連携窓口の探し方", keywords:["公民連携","自治体DX","地方創生"]},
-  {vol:8, date:"6/17(火)", phase:2, mainTitle:"ふるのばMeet開催告知", columnTheme:"対話型イベントを最大活用する方法", keywords:["公民共創","リバースピッチ","公民連携"]},
-  {vol:9, date:"6/24(火)", phase:2, mainTitle:"共創事例①（地域DX）", columnTheme:"実証実験（PoC）の進め方", keywords:["自治体DX","公民共創","地方創生"]},
-  {vol:10,date:"7/1(火)",  phase:3, mainTitle:"企業インタビュー②", columnTheme:"行政の「年度」サイクルを理解する", keywords:["公民連携","官民連携","地方創生"]},
-  {vol:11,date:"7/8(火)",  phase:3, mainTitle:"夏イベント先行告知", columnTheme:"地方創生関連制度の全体マップ", keywords:["企業版ふるさと納税","地方創生","関係人口"]},
-  {vol:12,date:"7/15(火)", phase:3, mainTitle:"共創事例②（移住・関係人口）", columnTheme:"関係人口とは何か", keywords:["関係人口","地方創生","公民共創"]},
-  {vol:13,date:"7/22(火)", phase:3, mainTitle:"3ヶ月振り返り特集", columnTheme:"公民共創の成功要因・失敗要因", keywords:["公民共創","公民連携","地方創生"]},
+// ══════════════════════════════════════
+// MASTER DATA
+// ══════════════════════════════════════
+const PROG = [
+  {v:1,  dt:'4/29(火)', ph:1, main:'創刊号',                 col:'公民共創とは何か？',             kw:['公民共創','公民連携','地方創生']},
+  {v:2,  dt:'5/6(火)',  ph:1, main:'連携vs共創特集',          col:'公民連携vs公民共創の違い',       kw:['公民共創','公民連携','官民連携']},
+  {v:3,  dt:'5/13(火)', ph:1, main:'自治体課題紹介',          col:'自治体が抱える3大課題',          kw:['公民共創','自治体DX','地方創生']},
+  {v:4,  dt:'5/20(火)', ph:1, main:'企業インタビュー①',       col:'企業が公民連携に取り組む理由',   kw:['公民連携','企業版ふるさと納税','ESG']},
+  {v:5,  dt:'5/27(火)', ph:2, main:'ReversePitchレポート',    col:'リバースピッチとは何か',         kw:['リバースピッチ','公民共創','公民連携']},
+  {v:6,  dt:'6/3(火)',  ph:2, main:'企業版ふるさと納税ガイド', col:'企業版ふるさと納税の基本と活用法',kw:['企業版ふるさと納税','地方創生','官民連携']},
+  {v:7,  dt:'6/10(火)', ph:2, main:'自治体インタビュー①',     col:'自治体の公民連携窓口の探し方',   kw:['公民連携','自治体DX','地方創生']},
+  {v:8,  dt:'6/17(火)', ph:2, main:'ふるのばMeet告知',        col:'対話型イベントを最大活用する方法',kw:['公民共創','リバースピッチ','公民連携']},
+  {v:9,  dt:'6/24(火)', ph:2, main:'共創事例①（地域DX）',    col:'実証実験（PoC）の進め方',        kw:['自治体DX','公民共創','地方創生']},
+  {v:10, dt:'7/1(火)',  ph:3, main:'企業インタビュー②',       col:'行政の「年度」サイクルを理解する',kw:['公民連携','官民連携','地方創生']},
+  {v:11, dt:'7/8(火)',  ph:3, main:'夏イベント先行告知',       col:'地方創生関連制度の全体マップ',   kw:['企業版ふるさと納税','地方創生','関係人口']},
+  {v:12, dt:'7/15(火)', ph:3, main:'共創事例②（関係人口）',  col:'関係人口とは何か',               kw:['関係人口','地方創生','公民共創']},
+  {v:13, dt:'7/22(火)', ph:3, main:'3ヶ月振り返り特集',       col:'公民共創の成功要因・失敗要因',   kw:['公民共創','公民連携','地方創生']},
 ];
+const PH = {1:'Phase 1 基礎理解', 2:'Phase 2 実践知', 3:'Phase 3 深化'};
+const PC = {1:'p1', 2:'p2', 3:'p3'};
+const ALLKW = ['公民共創','公民連携','地方創生','企業版ふるさと納税','自治体DX','関係人口','リバースピッチ','官民連携'];
 
-const PHASE_LABELS = {1:"Phase 1 基礎理解", 2:"Phase 2 実践知", 3:"Phase 3 深化"};
-const PHASE_CLASS  = {1:"phase-1", 2:"phase-2", 3:"phase-3"};
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let step = 1, selv = null;
+let evs = [], arts = [], seln = new Set();
+let ghtml = '', gsubj = '';
+let akws = new Set();
+let draftVols = new Set(); // スプシから取得した下書き済みvol
 
-// App state
-let currentStep = 1;
-let selectedVol  = null;
-let events = [];
-let newsArticles = [];
-let newsSelected = new Set();
-let generatedHTML = '';
-let generatedSubject = '';
-
-// Session storage helpers
-const SS = {
-  save(key, val){ try{ sessionStorage.setItem('furunoba_'+key, JSON.stringify(val)); }catch(e){} },
-  load(key, def){ try{ const v=sessionStorage.getItem('furunoba_'+key); return v?JSON.parse(v):def; }catch(e){ return def; } },
-  hasDraft(vol){ return !!sessionStorage.getItem('furunoba_draft_'+vol); },
-  saveDraft(vol, data){ try{ sessionStorage.setItem('furunoba_draft_'+vol, JSON.stringify(data)); }catch(e){} },
-  loadDraft(vol){ try{ const v=sessionStorage.getItem('furunoba_draft_'+vol); return v?JSON.parse(v):null; }catch(e){return null;} },
-};
-
-// ═══════════════════════════════════════════
-// STEP 1
-// ═══════════════════════════════════════════
-function buildProgGrid(){
-  const grid = document.getElementById('progGrid');
-  grid.innerHTML = PROGRAMME.map(p=>`
-    <div class="prog-card${SS.hasDraft(p.vol)?' has-draft':''}" id="pc${p.vol}" onclick="selectVol(${p.vol})">
-      <div class="prog-vol">Vol.${String(p.vol).padStart(2,'0')}</div>
-      <div class="prog-date">${p.date}</div>
-      <div class="prog-phase ${PHASE_CLASS[p.phase]}">${PHASE_LABELS[p.phase]}</div>
-      <div class="prog-theme">${p.mainTitle}</div>
-      <div class="prog-column">📚 ${p.columnTheme}</div>
-    </div>
-  `).join('');
-}
-
-function selectVol(vol){
-  selectedVol = vol;
-  document.querySelectorAll('.prog-card').forEach(c=>c.classList.remove('selected'));
-  document.getElementById('pc'+vol).classList.add('selected');
-  const p = PROGRAMME.find(x=>x.vol===vol);
-  document.getElementById('headerBadge').textContent = `Vol.${String(vol).padStart(2,'0')} / ${p.date}`;
-  document.getElementById('headerBadge').classList.add('set');
-  document.getElementById('btnNext').disabled = false;
-  document.getElementById('navInfo').textContent = `Vol.${vol}「${p.mainTitle}」を選択中`;
-  // Load draft if exists
-  const draft = SS.loadDraft(vol);
-  if(draft){
-    events = draft.events||[];
-    newsArticles = draft.newsArticles||[];
-    newsSelected = new Set(draft.newsSelected||[]);
-    if(draft.column) document.getElementById('columnText').value = draft.column;
-  } else {
-    events = [];
-    newsArticles = [];
-    newsSelected = new Set();
-    document.getElementById('columnText').value = '';
+// ══════════════════════════════════════
+// GAS API CALL
+// ══════════════════════════════════════
+async function gasCall(action, extra = {}) {
+  if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEBAPP_URL_HERE') {
+    throw new Error('GAS_URL が設定されていません。index.html を編集してください。');
   }
-  // Set column theme & keywords
-  document.getElementById('columnTheme').textContent = p.columnTheme;
-  buildKwChips(p.keywords);
+  const res = await fetch(GAS_URL, {
+    method:  'POST',
+    headers: { 'Content-Type': 'text/plain' }, // GASはapplication/jsonでCORSエラーになるためtext/plain
+    body:    JSON.stringify({ action, ...extra }),
+    redirect: 'follow',
+  });
+  if (!res.ok) throw new Error('GAS通信エラー: ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
 }
 
-// ═══════════════════════════════════════════
-// STEP 2 – EVENTS
-// ═══════════════════════════════════════════
-function buildEventList(){
-  const list = document.getElementById('eventList');
-  list.innerHTML = events.map((ev,i)=>`
-    <div class="event-card">
-      <div class="event-card-head">
-        <div class="event-num">イベント ${i+1}</div>
-        <button class="btn btn-danger btn-sm" onclick="removeEvent(${i})">✕ 削除</button>
-      </div>
-      <div class="form-row">
-        <div class="form-group" style="grid-column:1/-1">
-          <label class="form-label">イベント名<span class="req">*</span></label>
-          <input type="text" value="${esc(ev.name||'')}" oninput="events[${i}].name=this.value;saveDraft()" placeholder="ふるのばMeet vol.XX">
-        </div>
-      </div>
-      <div class="form-row triple">
-        <div class="form-group">
-          <label class="form-label">開催日時<span class="req">*</span></label>
-          <input type="datetime-local" value="${ev.datetime||''}" oninput="events[${i}].datetime=this.value;saveDraft()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">形式</label>
-          <select onchange="events[${i}].format=this.value;saveDraft()">
-            ${['オンライン','オフライン','ハイブリッド'].map(f=>`<option${ev.format===f?' selected':''}>${f}</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">参加費</label>
-          <select onchange="events[${i}].fee=this.value;saveDraft()">
-            ${['無料','有料'].map(f=>`<option${ev.fee===f?' selected':''}>${f}</option>`).join('')}
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">申込URL</label>
-          <input type="url" value="${esc(ev.url||'')}" oninput="events[${i}].url=this.value;saveDraft()" placeholder="https://...">
-        </div>
-        <div class="form-group">
-          <label class="form-label">対象者</label>
-          <input type="text" value="${esc(ev.target||'')}" oninput="events[${i}].target=this.value;saveDraft()" placeholder="企業担当者、自治体職員">
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">一言紹介文（最大100字）</label>
-        <textarea rows="2" oninput="events[${i}].note=this.value;saveDraft();updateEvCharCount(${i},this)">${esc(ev.note||'')}</textarea>
-        <div class="char-count" id="evcc${i}">${(ev.note||'').length} / 100字</div>
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('addEventBtn').style.display = events.length>=3?'none':'block';
-  updateEventsBadge();
-}
-
-function updateEvCharCount(i, el){
-  const c = el.value.length;
-  const cc = document.getElementById('evcc'+i);
-  cc.textContent = c+' / 100字';
-  cc.className = 'char-count'+(c>100?' over':c>80?' warn':'');
-}
-
-function addEvent(){
-  if(events.length>=3) return;
-  events.push({name:'',datetime:'',format:'オンライン',fee:'無料',url:'',target:'',note:''});
-  buildEventList();
-}
-function removeEvent(i){
-  events.splice(i,1);
-  buildEventList();
-  saveDraft();
-}
-function updateEventsBadge(){
-  document.getElementById('eventsBadge').textContent = events.length;
-}
-
-// ═══════════════════════════════════════════
-// STEP 2 – NEWS
-// ═══════════════════════════════════════════
-let activeKws = new Set();
-function buildKwChips(preset){
-  activeKws = new Set(preset);
-  const chips = document.getElementById('kwChips');
-  const ALL = ['公民共創','公民連携','地方創生','企業版ふるさと納税','自治体DX','関係人口','リバースピッチ','官民連携'];
-  chips.innerHTML = ALL.map(kw=>`
-    <div class="kw-chip${activeKws.has(kw)?' on':''}" onclick="toggleKw('${kw}',this)">${kw}</div>
-  `).join('');
-  if(newsArticles.length) renderNewsCards();
-}
-
-function toggleKw(kw, el){
-  if(activeKws.has(kw)){ activeKws.delete(kw); el.classList.remove('on'); }
-  else { activeKws.add(kw); el.classList.add('on'); }
-}
-
-async function fetchNews(){
-  const kws = [...activeKws];
-  const custom = document.getElementById('customKw').value.trim();
-  if(custom) kws.push(custom);
-  if(!kws.length){ showToast('キーワードを1つ以上選択してください'); return; }
-
-  const btn = document.getElementById('fetchNewsBtn');
-  btn.disabled = true;
-  const st = document.getElementById('newsStatus');
-  st.className = 'status loading';
-  document.getElementById('newsStatusText').textContent = `「${kws.slice(0,3).join('・')}`+(kws.length>3?`など`:``)+`」で検索中...`;
-  document.getElementById('newsGrid').innerHTML = '';
-  newsArticles = [];
-  newsSelected.clear();
-
-  const p = PROGRAMME.find(x=>x.vol===selectedVol);
-
-  const prompt = `あなたは公民共創コミュニティ「ふるのば」のメールマガジン担当者です。
-以下のキーワードに関連する最新ニュース・事例・政策動向をウェブ検索で5〜7件収集し、メールマガジンvol.${selectedVol}（テーマ：${p.columnTheme}）で紹介するのに最適なものを選定してください。
-
-検索キーワード: ${kws.join('、')}
-
-以下のJSON配列のみを返してください（他の文字・コードブロック不要）:
-[{"title":"記事タイトル","summary":"要約60字","reason":"メルマガに取り上げる理由40字（企業・自治体担当者にとっての価値）","source":"出典メディア名","url":"記事URL","tags":["タグ1","タグ2"],"score":推薦度1〜5の整数,"isNew":直近2週間以内かtrue/false}]`;
-
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async () => {
+  if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEBAPP_URL_HERE') {
+    document.getElementById('setupBanner').classList.add('show');
+  }
+  buildProg();
+  // 下書き一覧を非同期で取得してバッジ表示
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        tools:[{type:'web_search_20250305',name:'web_search'}],
-        messages:[{role:'user',content:prompt}]
-      })
-    });
-    if(!res.ok) throw new Error('API Error: '+res.status);
-    const data = await res.json();
-    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    const m = text.match(/\[[\s\S]*\]/);
-    if(!m) throw new Error('JSONが見つかりませんでした');
-    newsArticles = JSON.parse(m[0]);
-    st.className = 'status';
-    renderNewsCards();
-    saveDraft();
-  } catch(err){
-    st.className = 'status error';
-    document.getElementById('newsStatusText').textContent = 'エラー: '+err.message;
+    const r = await gasCall('listDrafts');
+    draftVols = new Set((r.drafts || []).map(d => String(d.vol)));
+    buildProg(); // 再描画してバッジを反映
+  } catch(e) { /* GAS未設定時は無視 */ }
+});
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2800);
+}
+function showOverlay(msg) { document.getElementById('gentx').innerHTML = msg; document.getElementById('genov').classList.add('on'); }
+function hideOverlay()    { document.getElementById('genov').classList.remove('on'); }
+
+// ══════════════════════════════════════
+// DRAFT (スプレッドシート)
+// ══════════════════════════════════════
+async function svd() {
+  if (!selv) return;
+  try {
+    const draft = {
+      evs,
+      arts,
+      seln: [...seln],
+      col: document.getElementById('coltxt').value,
+    };
+    await gasCall('saveDraft', { vol: selv, draft });
+    draftVols.add(String(selv));
+    buildProg();
+  } catch(e) { /* 保存失敗は無視（操作継続優先） */ }
+}
+
+async function loadDraft(vol) {
+  try {
+    const r = await gasCall('loadDraft', { vol });
+    if (r.draft) {
+      evs  = r.draft.evs  || [];
+      arts = r.draft.arts || [];
+      seln = new Set(r.draft.seln || []);
+      if (r.draft.col) document.getElementById('coltxt').value = r.draft.col;
+    } else {
+      evs = []; arts = []; seln = new Set();
+      document.getElementById('coltxt').value = '';
+    }
+  } catch(e) {
+    evs = []; arts = []; seln = new Set();
+    document.getElementById('coltxt').value = '';
+  }
+}
+
+// ══════════════════════════════════════
+// STEP 1: 番組表
+// ══════════════════════════════════════
+function buildProg() {
+  const g = document.getElementById('pgrid');
+  g.innerHTML = PROG.map(p => `
+    <div class="pc${draftVols.has(String(p.v)) ? ' draft' : ''}" id="pc${p.v}" onclick="selVol(${p.v})">
+      <div class="pv">Vol.${String(p.v).padStart(2,'0')}</div>
+      <div class="pd">${p.dt}</div>
+      <div class="pp ${PC[p.ph]}">${PH[p.ph]}</div>
+      <div class="pt">${p.main}</div>
+      <div class="pc2">📚 ${p.col}</div>
+    </div>`).join('');
+}
+
+async function selVol(v) {
+  selv = v;
+  document.querySelectorAll('.pc').forEach(c => c.classList.remove('sel'));
+  document.getElementById('pc' + v).classList.add('sel');
+  const p = PROG.find(x => x.v === v);
+  const hb = document.getElementById('hbadge');
+  hb.textContent = `Vol.${String(v).padStart(2,'0')} / ${p.dt}`;
+  hb.classList.add('set');
+  document.getElementById('btnnext').disabled = false;
+  document.getElementById('navinfo').textContent = `Vol.${v}「${p.main}」選択中`;
+  document.getElementById('coltheme').textContent = p.col;
+  buildKw(p.kw);
+  showOverlay('下書きを読み込み中...');
+  await loadDraft(v);
+  hideOverlay();
+}
+
+// ══════════════════════════════════════
+// STEP 2-A: イベント
+// ══════════════════════════════════════
+function buildEv() {
+  const l = document.getElementById('evlist');
+  l.innerHTML = evs.map((e, i) => `
+    <div class="ev-card">
+      <div class="ev-head">
+        <span class="ev-num">イベント ${i+1}</span>
+        <button class="btn btn-d btn-sm" onclick="rmev(${i})">✕ 削除</button>
+      </div>
+      <div class="fg"><label class="fl">イベント名<span class="req">*</span></label>
+        <input type="text" value="${esc(e.nm||'')}" oninput="evs[${i}].nm=this.value;svd()" placeholder="ふるのばMeet vol.XX"></div>
+      <div class="fr3">
+        <div class="fg"><label class="fl">開催日時</label>
+          <input type="datetime-local" value="${e.dt||''}" oninput="evs[${i}].dt=this.value;svd()"></div>
+        <div class="fg"><label class="fl">形式</label>
+          <select onchange="evs[${i}].fmt=this.value;svd()">
+            ${['オンライン','オフライン','ハイブリッド'].map(f=>`<option${e.fmt===f?' selected':''}>${f}</option>`).join('')}
+          </select></div>
+        <div class="fg"><label class="fl">参加費</label>
+          <select onchange="evs[${i}].fee=this.value;svd()">
+            ${['無料','有料'].map(f=>`<option${e.fee===f?' selected':''}>${f}</option>`).join('')}
+          </select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">申込URL</label>
+          <input type="url" value="${esc(e.url||'')}" oninput="evs[${i}].url=this.value;svd()" placeholder="https://..."></div>
+        <div class="fg"><label class="fl">対象者</label>
+          <input type="text" value="${esc(e.tgt||'')}" oninput="evs[${i}].tgt=this.value;svd()" placeholder="企業担当者、自治体職員"></div>
+      </div>
+      <div class="fg"><label class="fl">一言紹介（100字以内）</label>
+        <textarea rows="2" oninput="evs[${i}].note=this.value;svd()">${esc(e.note||'')}</textarea></div>
+    </div>`).join('');
+  document.getElementById('addev').style.display = evs.length >= 3 ? 'none' : 'block';
+  document.getElementById('evb').textContent = evs.length;
+}
+function addev() { if(evs.length>=3)return; evs.push({nm:'',dt:'',fmt:'オンライン',fee:'無料',url:'',tgt:'',note:''}); buildEv(); svd(); }
+function rmev(i) { evs.splice(i,1); buildEv(); svd(); }
+
+// ══════════════════════════════════════
+// STEP 2-B: ニュース
+// ══════════════════════════════════════
+function buildKw(preset) {
+  akws = new Set(preset || []);
+  const c = document.getElementById('kwchips');
+  c.innerHTML = ALLKW.map(k =>
+    `<div class="kc${akws.has(k)?' on':''}" onclick="tgkw('${k}',this)">${k}</div>`
+  ).join('');
+  if (arts.length) rendNews();
+}
+function tgkw(k, el) {
+  if(akws.has(k)){akws.delete(k);el.classList.remove('on');}
+  else{akws.add(k);el.classList.add('on');}
+}
+
+async function fetchNews() {
+  const kws = [...akws];
+  const ck = document.getElementById('ckw').value.trim();
+  if(ck) kws.push(ck);
+  if(!kws.length){ toast('キーワードを1つ以上選んでください'); return; }
+  const p = PROG.find(x => x.v === selv);
+  const btn = document.getElementById('fnbtn');
+  btn.disabled = true;
+  const st = document.getElementById('nwst');
+  st.className = 'st load';
+  document.getElementById('nwstx').textContent = `「${kws.slice(0,3).join('・')}」で検索中...`;
+  document.getElementById('ngrid').innerHTML = '';
+  arts = []; seln.clear();
+  try {
+    const r = await gasCall('fetchNews', { keywords: kws, vol: p.v, colTheme: p.col });
+    arts = r.articles || [];
+    seln.clear();
+    st.className = 'st';
+    rendNews();
+    svd();
+  } catch(e) {
+    st.className = 'st err';
+    st.querySelector('span').textContent = 'エラー: ' + e.message;
     st.style.display = 'flex';
   } finally {
     btn.disabled = false;
   }
 }
 
-function renderNewsCards(){
-  const grid = document.getElementById('newsGrid');
-  if(!newsArticles.length){ grid.innerHTML=''; return; }
-  grid.innerHTML = newsArticles.map((a,i)=>{
-    const sel = newsSelected.has(i);
-    const stars = '★'.repeat(a.score||3)+'☆'.repeat(5-(a.score||3));
-    const tags = (a.tags||[]).map(t=>`<span class="news-tag tag-kw">${esc(t)}</span>`).join('');
-    const newTag = a.isNew?'<span class="news-tag tag-new">NEW</span>':'';
-    const recTag = (a.score>=4)?'<span class="news-tag tag-rec">おすすめ</span>':'';
-    return `<div class="news-card${sel?' selected':''}" onclick="toggleNews(${i})" id="nc${i}">
-      <div class="news-tags">${newTag}${recTag}${tags}<span class="news-stars ml-auto">${stars}</span></div>
-      <div class="news-title">${esc(a.title||'')}</div>
-      <div class="news-summary">${esc(a.summary||'')}</div>
-      <div class="news-reason"><b>💡 選定理由：</b>${esc(a.reason||'')}</div>
-      <div class="news-footer"><span>📰 ${esc(a.source||'')}</span>${a.url&&a.url!=='null'?`<a href="${esc(a.url)}" target="_blank" style="font-size:10px;color:var(--primary)">記事を開く →</a>`:''}</div>
+function rendNews() {
+  const g = document.getElementById('ngrid');
+  if (!arts.length) { g.innerHTML = ''; updSel(); return; }
+  g.innerHTML = arts.map((a, i) => {
+    const s = seln.has(i);
+    const st = '★'.repeat(a.score||3) + '☆'.repeat(5-(a.score||3));
+    const tags = (a.tags||[]).map(t=>`<span class="nt nt-k">${esc(t)}</span>`).join('');
+    const nn = a.isNew ? '<span class="nt nt-n">NEW</span>' : '';
+    const rr = (a.score>=4) ? '<span class="nt nt-r">おすすめ</span>' : '';
+    return `<div class="nc${s?' sel':''}" onclick="tgNews(${i})">
+      <div class="ntags">${nn}${rr}${tags}<span class="nstars" style="margin-left:auto">${st}</span></div>
+      <div class="ntitle">${esc(a.title||'')}</div>
+      <div class="nsum">${esc(a.summary||'')}</div>
+      <div class="nrsn"><b>💡 選定理由：</b>${esc(a.reason||'')}</div>
+      <div class="nft">
+        <span>📰 ${esc(a.source||'')}</span>
+        ${a.url&&a.url!=='null'?`<a href="${esc(a.url)}" target="_blank" rel="noopener" style="font-size:10px;color:var(--g)">記事を開く →</a>`:''}
+      </div>
     </div>`;
   }).join('');
-  updateNewsBadge();
+  updSel();
 }
 
-function toggleNews(i){
-  if(newsSelected.has(i)) newsSelected.delete(i);
-  else newsSelected.add(i);
-  renderNewsCards();
-  saveDraft();
+function tgNews(i) {
+  if(seln.has(i)) seln.delete(i); else seln.add(i);
+  rendNews(); svd();
 }
-
-function updateNewsBadge(){
-  const n = newsSelected.size;
-  document.getElementById('newsBadge').textContent = n;
-  const sc = document.getElementById('newsSelCount');
-  const dots = document.getElementById('newsSelDots');
-  const txt = document.getElementById('newsSelText');
-  if(newsArticles.length){
-    sc.style.display='flex';
-    dots.innerHTML = [0,1,2].map(j=>`<div class="sel-dot${j<n?' filled':''}"></div>`).join('');
-    txt.textContent = n+'件選択中';
+function updSel() {
+  const n = seln.size;
+  document.getElementById('nwb').textContent = n;
+  const sb = document.getElementById('selbar');
+  if(arts.length) {
+    sb.style.display = 'flex';
+    [0,1,2].forEach(j => { const d=document.getElementById('d'+j); if(d) d.className='dot'+(j<n?' f':''); });
+    document.getElementById('selnum').textContent = n + '件選択中';
   } else {
-    sc.style.display='none';
+    sb.style.display = 'none';
   }
 }
 
-// ═══════════════════════════════════════════
-// STEP 2 – COLUMN
-// ═══════════════════════════════════════════
-async function generateColumn(regen=false){
-  const p = PROGRAMME.find(x=>x.vol===selectedVol);
+// ══════════════════════════════════════
+// STEP 2-C: コラム
+// ══════════════════════════════════════
+function updcc() {
+  const n = document.getElementById('coltxt').value.length;
+  const el = document.getElementById('colcc');
+  el.textContent = n + ' / 800字';
+  el.className = 'cc' + (n>800?' over':n>650?' warn':'');
+  document.getElementById('colb').textContent = n>100 ? '✓' : '0';
+}
+
+async function genCol(regen = false) {
+  const p = PROG.find(x => x.v === selv);
   if(!p) return;
-  const btn = document.getElementById('genColumnBtn');
+  const btn = document.getElementById('gcolbtn');
   btn.disabled = true;
-  const st = document.getElementById('columnStatus');
-  st.className = 'status loading';
-
+  const st = document.getElementById('colst');
+  st.className = 'st load';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        system:`あなたは公民共創コミュニティ「ふるのば」のメールマガジン担当編集者です。
-読者は自治体との連携に関心を持つ企業担当者と自治体職員が中心です。
-文体：ですます調、丁寧だが親しみやすく、専門用語には簡単な説明を添える。`,
-        messages:[{role:'user',content:`今号（vol.${p.vol}）のテーマ「${p.columnTheme}」について、500〜800字のコラムを書いてください。
-以下の構成で：
-・冒頭に読者の共感を引く問いかけ（1〜2文）
-・テーマの概念説明（具体例を1つ含む）
-・実践的なヒントまたは気づき
-・ふるのばコミュニティとの接点で締める
-
-本文のみ返してください。タイトルは不要です。`}]
-      })
-    });
-    if(!res.ok) throw new Error('API Error: '+res.status);
-    const data = await res.json();
-    const text = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    document.getElementById('columnText').value = text.trim();
-    updateColumnCount();
-    st.className = 'status';
-    document.getElementById('columnBadge').textContent = '✓';
-    saveDraft();
-  } catch(err){
-    st.className = 'status error';
-    st.style.display='flex';
-    document.getElementById('columnStatus').querySelector('span').textContent = 'エラー: '+err.message;
+    const r = await gasCall('genColumn', { vol: p.v, colTheme: p.col });
+    document.getElementById('coltxt').value = r.column;
+    updcc();
+    st.className = 'st';
+    document.getElementById('colb').textContent = '✓';
+    svd();
+  } catch(e) {
+    st.className = 'st err';
+    st.querySelector('span').textContent = 'エラー: ' + e.message;
+    st.style.display = 'flex';
   } finally {
     btn.disabled = false;
   }
 }
 
-function regenColumn(){ generateColumn(true); }
-
-function updateColumnCount(){
-  const n = document.getElementById('columnText').value.length;
-  const el = document.getElementById('columnCount');
-  el.textContent = n+' / 800字';
-  el.className = 'char-count'+(n>800?' over':n>650?' warn':'');
-  const filled = n>100;
-  document.getElementById('columnBadge').textContent = filled?'✓':'0';
-}
-
-// ═══════════════════════════════════════════
-// STEP 3 – HTML GENERATION
-// ═══════════════════════════════════════════
-async function generateHTMLMail(){
-  const p = PROGRAMME.find(x=>x.vol===selectedVol);
-  showGenOverlay('HTMLメールを生成中...<br>少しお待ちください');
-
-  const eventsText = events.map((ev,i)=>`
-イベント${i+1}:
-  名前: ${ev.name}
-  日時: ${ev.datetime}
-  形式: ${ev.format}
-  参加費: ${ev.fee}
-  URL: ${ev.url||'なし'}
-  対象: ${ev.target||'全員'}
-  説明: ${ev.note||''}`.trim()).join('\n\n');
-
-  const selectedNews = [...newsSelected].map(i=>newsArticles[i]);
-  const newsText = selectedNews.map(a=>`
-  タイトル: ${a.title}
-  要約: ${a.summary}
-  選定理由: ${a.reason}
-  URL: ${a.url||'なし'}
-  出典: ${a.source}`).join('\n\n');
-
-  const columnText = document.getElementById('columnText').value;
-
-  const prompt = `以下の内容をもとに、公民共創コミュニティ「ふるのば」の週次メールマガジン vol.${p.vol} のHTMLメールを生成してください。
-
-【号の情報】
-Vol: ${p.vol} / 配信日: ${p.date}
-メインテーマ: ${p.mainTitle}
-コラムテーマ: ${p.columnTheme}
-
-【イベント情報】
-${eventsText||'（今号はイベント情報なし）'}
-
-【ニュースピック】
-${newsText||'（今号はニュースピックなし）'}
-
-【コラム本文】
-${columnText||'（コラムなし）'}
-
-【出力要件】
-1. HubSpot対応のHTMLメール（インラインCSS必須、外部CSS・JS不可）
-2. max-width 600px、センター配置、背景色 #F3F8F5
-3. 画像なし（テキスト＋カラーブロックのみ）
-4. ブランドカラー：メインカラー #1A6B3C、アクセント #D4901A
-5. フォント：システムフォント（'Hiragino Kaku Gothic ProN','Meiryo',sans-serif）
-6. 文体：ですます調、丁寧だが親しみやすく
-
-【メール構造（この順番で）】
-- ヘッダー（背景 #114827、ロゴ「ふるのば」、Vol番号・配信日）
-- 巻頭メッセージ（50〜80字、その号のテーマに合わせた書き出し）
-- イベント情報セクション（入力がある場合のみ。申込ボタン #D4901A）
-- 今週の公民共創ニュースセクション（選択ニュースを解説文付きで）
-- コラムセクション（テーマタイトル＋コラム本文）
-- フッター（背景 #1A2530）：
-  発行：公民共創コミュニティ ふるのば 事務局
-  運営：株式会社エージェント
-  お問い合わせ：furunoba@agent-network.com
-  公式サイト：https://furunoba-site.agent-network.com/
-  ※このメールの配信停止は {{ unsubscribe_link }} からお手続きください。
-  冒頭に {{ contact.firstname }}さん、という呼びかけを入れてください。
-
-完全なHTMLのみ返してください。説明文・コードブロックは不要です。`;
-
+// ══════════════════════════════════════
+// STEP 3: HTML生成
+// ══════════════════════════════════════
+async function genHtml() {
+  const p = PROG.find(x => x.v === selv);
+  showOverlay('HTMLメールを生成中...<br>少しお待ちください');
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        messages:[{role:'user',content:prompt}]
-      })
+    const selectedNews = [...seln].map(i => arts[i]);
+    const r = await gasCall('genHtml', {
+      vol: p.v, date: p.dt, mainTitle: p.main, colTheme: p.col,
+      events: evs,
+      selectedNews,
+      column: document.getElementById('coltxt').value,
     });
-    if(!res.ok) throw new Error('API Error: '+res.status);
-    const data = await res.json();
-    let html = data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    // Strip markdown fences if present
-    html = html.replace(/^```html?\n?/,'').replace(/\n?```$/,'').trim();
-    generatedHTML = html;
-    generatedSubject = `【公民共創コミュニティふるのば】メールマガジンvol.${String(p.vol).padStart(2,'0')}`;
-    document.getElementById('subjectInput').value = generatedSubject;
-    document.getElementById('subjectPreview').textContent = generatedSubject;
-    renderPreview(html);
-    hideGenOverlay();
-  } catch(err){
-    hideGenOverlay();
-    showToast('HTML生成エラー: '+err.message);
+    ghtml = r.html;
+    gsubj = `【公民共創コミュニティふるのば】メールマガジンvol.${String(p.v).padStart(2,'0')}`;
+    document.getElementById('subjin').value  = gsubj;
+    document.getElementById('subjprev').textContent = gsubj;
+    document.getElementById('pframe').srcdoc = ghtml;
+    hideOverlay();
+  } catch(e) {
+    hideOverlay();
+    toast('HTML生成エラー: ' + e.message);
   }
 }
 
-function renderPreview(html){
-  const frame = document.getElementById('previewFrame');
-  frame.srcdoc = html;
-  frame.height = 700;
+function setpm(m, btn) {
+  document.querySelectorAll('.pmode').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('pframe').className = 'pframe' + (m==='mb' ? ' mob' : '');
 }
 
-function regenerateHTML(){ generateHTMLMail(); }
-
-function setPreviewMode(mode, btn){
-  document.querySelectorAll('.preview-mode-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  const frame = document.getElementById('previewFrame');
-  frame.className = 'preview-frame '+mode;
-}
-
-// ═══════════════════════════════════════════
-// STEP 4 – OUTPUT
-// ═══════════════════════════════════════════
-function copyHubspotHTML(){
-  if(!generatedHTML){ showToast('先にHTMLを生成してください'); return; }
-  navigator.clipboard.writeText(generatedHTML).then(()=>{
-    document.getElementById('outCardA').classList.add('done');
-    showToast('✓ HubSpot用HTMLをコピーしました');
+// ══════════════════════════════════════
+// STEP 4: 出力
+// ══════════════════════════════════════
+function copHub() {
+  if(!ghtml){ toast('先にHTMLを生成してください'); return; }
+  navigator.clipboard.writeText(ghtml).then(() => {
+    document.getElementById('oca').classList.add('done');
+    toast('✓ HubSpot用HTMLをコピーしました');
   });
 }
-function copyPlainText(){
-  if(!generatedHTML){ showToast('先にHTMLを生成してください'); return; }
-  const tmp = document.createElement('div');
-  tmp.innerHTML = generatedHTML;
-  const plain = (tmp.textContent||tmp.innerText||'').replace(/\n{3,}/g,'\n\n').trim();
-  navigator.clipboard.writeText(plain).then(()=>{
-    document.getElementById('outCardB').classList.add('done');
-    showToast('✓ テキスト版をコピーしました');
+function copTxt() {
+  if(!ghtml){ toast('先にHTMLを生成してください'); return; }
+  const d = document.createElement('div');
+  d.innerHTML = ghtml;
+  const t = (d.textContent||d.innerText||'').replace(/\n{3,}/g,'\n\n').trim();
+  navigator.clipboard.writeText(t).then(() => {
+    document.getElementById('ocb').classList.add('done');
+    toast('✓ テキスト版をコピーしました');
   });
 }
 
-// ═══════════════════════════════════════════
+// ══════════════════════════════════════
 // NAVIGATION
-// ═══════════════════════════════════════════
-function goStep(n){
-  if(n===1||(n>1&&selectedVol)) setStep(n);
-}
+// ══════════════════════════════════════
+function gostep(n) { if(n===1||(n>1&&selv)) setstep(n); }
+function navnext()  { if(step<4) setstep(step+1); }
+function navback()  { if(step>1) setstep(step-1); }
 
-function setStep(n){
-  currentStep = n;
-  document.querySelectorAll('.screen').forEach((s,i)=>{
-    s.classList.toggle('active', i+1===n);
-  });
-  document.querySelectorAll('.step').forEach((s,i)=>{
-    const num = i+1;
+function setstep(n) {
+  step = n;
+  document.querySelectorAll('.scr').forEach((s,i) => s.classList.toggle('on', i+1===n));
+  document.querySelectorAll('.stp').forEach((s,i) => {
     s.classList.remove('active','done');
-    if(num===n) s.classList.add('active');
-    else if(num<n) s.classList.add('done');
+    if(i+1===n) s.classList.add('active');
+    else if(i+1<n) s.classList.add('done');
   });
-  const back = document.getElementById('btnBack');
-  const next = document.getElementById('btnNext');
-  back.style.display = n>1?'inline-flex':'none';
-  if(n===1){
-    next.textContent='次へ →';
-    next.disabled = !selectedVol;
-    document.getElementById('navInfo').textContent = selectedVol?`Vol.${selectedVol} 選択中`:'号数を選択してください';
-  } else if(n===2){
-    buildEventList();
-    renderNewsCards();
-    updateNewsBadge();
-    updateColumnCount();
-    next.textContent='プレビューへ →';
-    next.disabled=false;
-    document.getElementById('navInfo').textContent='コンテンツを入力してください';
-  } else if(n===3){
-    next.textContent='出力へ →';
-    next.disabled=false;
-    document.getElementById('navInfo').textContent='HTMLプレビューを確認してください';
-    if(!generatedHTML) generateHTMLMail();
-  } else if(n===4){
-    next.style.display='none';
-    document.getElementById('navInfo').textContent='出力方法を選択してください';
+  const bb = document.getElementById('btnback');
+  const nb = document.getElementById('btnnext');
+  bb.style.display = n>1 ? 'inline-flex' : 'none';
+  nb.style.display  = 'inline-flex';
+  if(n===1) {
+    nb.textContent = '次へ →'; nb.disabled = !selv;
+    document.getElementById('navinfo').textContent = selv ? `Vol.${selv} 選択中` : '号数を選択してください';
+  } else if(n===2) {
+    buildEv(); rendNews(); updSel(); updcc();
+    nb.textContent = 'プレビューへ →'; nb.disabled = false;
+    document.getElementById('navinfo').textContent = 'コンテンツを入力してください';
+  } else if(n===3) {
+    nb.textContent = '出力へ →'; nb.disabled = false;
+    document.getElementById('navinfo').textContent = 'HTMLを確認してください';
+    if(!ghtml) genHtml();
+  } else {
+    nb.style.display = 'none';
+    document.getElementById('navinfo').textContent = '出力方法を選んでください';
   }
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
-function navNext(){
-  if(currentStep<4) setStep(currentStep+1);
-}
-function navBack(){
-  if(currentStep>1) setStep(currentStep-1);
-}
-
-// ═══════════════════════════════════════════
-// TAB SWITCH
-// ═══════════════════════════════════════════
-function switchTab(name){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
-  document.querySelectorAll('.tab-content').forEach(c=>c.classList.toggle('active',c.id==='tab-'+name));
+function swtab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.tc').forEach(c  => c.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('tc-'+name).classList.add('on');
 }
 
-// ═══════════════════════════════════════════
-// OVERLAY & TOAST
-// ═══════════════════════════════════════════
-function showGenOverlay(msg){
-  document.getElementById('genText').innerHTML = msg;
-  document.getElementById('genOverlay').classList.add('show');
-}
-function hideGenOverlay(){
-  document.getElementById('genOverlay').classList.remove('show');
-}
-function showToast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2800);
-}
-
-// ═══════════════════════════════════════════
-// DRAFT
-// ═══════════════════════════════════════════
-function saveDraft(){
-  if(!selectedVol) return;
-  SS.saveDraft(selectedVol,{
-    events,
-    newsArticles,
-    newsSelected:[...newsSelected],
-    column: document.getElementById('columnText').value
-  });
-  // refresh draft badges on step 1 cards
-  document.querySelectorAll('.prog-card').forEach(c=>{
-    const vol = parseInt(c.id.replace('pc',''));
-    c.classList.toggle('has-draft', SS.hasDraft(vol));
-  });
-}
-
-// ═══════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-// ═══════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════
-buildProgGrid();
-document.getElementById('btnNext').disabled = true;
+buildProg();
 </script>
 </body>
 </html>
