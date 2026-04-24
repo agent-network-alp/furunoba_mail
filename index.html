@@ -156,9 +156,9 @@ textarea{resize:vertical;line-height:1.65}
 <body>
 
 <script>
-const GAS_URL = 'https://script.google.com/a/macros/agent-network.com/s/AKfycbxOK7vwIdBUbIjZLJzexE9PZGIlj9yPF0LAcv89VdhcaDQzlxv2m-rcR_2AEk3ZiWJM9g/exec';
+const GAS_URL = 'YOUR_GAS_WEBAPP_URL_HERE';
 // ▼ Google Cloud ConsoleのOAuthクライアントID（.apps.googleusercontent.com で終わる文字列）
-const GOOGLE_CLIENT_ID = '293215192019-gr5nc5fb3tghj6j0cbv1730kf288p1uk.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE';
 </script>
 
 <header class="app-hd">
@@ -385,7 +385,7 @@ let secNums={}; // {id->番号}
 
 // ─── GAS CALL ────────────────────────────
 async function gasCall(action,extra={}){
-  if(!GAS_URL||GAS_URL==='YOUR_GAS_WEBAPP_URL_HERE') throw new Error('GAS_URLが未設定です');
+  if(!GAS_URL||GAS_URL==='https://script.google.com/macros/s/AKfycbxOK7vwIdBUbIjZLJzexE9PZGIlj9yPF0LAcv89VdhcaDQzlxv2m-rcR_2AEk3ZiWJM9g/exec') throw new Error('GAS_URLが未設定です');
   const idToken=await getIdToken();
   const p=encodeURIComponent(JSON.stringify({action,idToken,...extra}));
   const res=await fetch(GAS_URL+'?payload='+p,{redirect:'follow'});
@@ -883,7 +883,7 @@ async function initApp() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  if(!GAS_URL||GAS_URL==='YOUR_GAS_WEBAPP_URL_HERE'||!GOOGLE_CLIENT_ID||GOOGLE_CLIENT_ID==='YOUR_GOOGLE_CLIENT_ID_HERE') {
+  if(!GAS_URL||GAS_URL==='YOUR_GAS_WEBAPP_URL_HERE'||!GOOGLE_CLIENT_ID||GOOGLE_CLIENT_ID==='293215192019-gr5nc5fb3tghj6j0cbv1730kf288p1uk.apps.googleusercontent.com') {
     document.getElementById('setupBanner').classList.add('show');
     buildProg();
     return;
