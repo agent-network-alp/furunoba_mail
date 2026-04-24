@@ -4,454 +4,251 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ふるのば メルマガ作成システム</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-/* ─── DESIGN TOKENS ─── */
-:root {
-  --g:    #1A6B3C;
-  --gd:   #114827;
-  --gl:   #EAF5EE;
-  --ac:   #D4901A;
-  --al:   #FDF3E0;
-  --tx:   #1A2530;
-  --txm:  #6B7A8D;
-  --bd:   #D5E8DC;
-  --bg:   #F3F8F5;
-  --sur:  #FFFFFF;
-  --sur2: #F7FAF8;
-  --r:    10px;
-  --sh:   0 2px 16px rgba(26,107,60,.08);
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'Zen Kaku Gothic New', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
-  background: var(--bg);
-  color: var(--tx);
-  min-height: 100vh;
-  font-size: 14px;
-}
-
-/* ─── HEADER ─── */
-.app-hd {
-  background: var(--gd);
-  padding: 0 32px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 200;
-  border-bottom: 3px solid var(--ac);
-  box-shadow: 0 2px 12px rgba(0,0,0,.2);
-}
-.hd-brand { display: flex; align-items: center; gap: 14px; }
-.hd-logo {
-  font-family: 'Shippori Mincho', serif;
-  font-size: 22px;
-  color: #fff;
-  letter-spacing: .08em;
-}
-.hd-logo span {
-  color: var(--ac);
-  font-size: 11px;
-  letter-spacing: .14em;
-  display: block;
-  font-family: 'Zen Kaku Gothic New', sans-serif;
-  font-weight: 300;
-  margin-top: -2px;
-}
-.vol-pill {
-  background: rgba(255,255,255,.1);
-  border: 1px solid rgba(255,255,255,.2);
-  color: rgba(255,255,255,.8);
-  font-size: 11px;
-  padding: 4px 14px;
-  border-radius: 100px;
-  transition: all .2s;
-}
-.vol-pill.set { background: var(--ac); border-color: var(--ac); color: #fff; font-weight: 700; }
-
-/* ─── STEPPER ─── */
-.stepper {
-  background: var(--sur);
-  border-bottom: 1px solid var(--bd);
-  display: flex;
-}
-.stp {
-  flex: 1;
-  padding: 13px 8px 11px;
-  text-align: center;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  color: var(--txm);
-  font-size: 12px;
-  font-weight: 500;
-  transition: all .2s;
-  opacity: .45;
-}
-.stp small { display: block; font-size: 10px; font-weight: 400; margin-top: 2px; color: var(--txm); }
-.stp.active { opacity: 1; border-bottom-color: var(--g); color: var(--g); }
-.stp.done   { opacity: .7; color: var(--ac); border-bottom-color: var(--ac); }
-
-/* ─── LAYOUT ─── */
-.main { max-width: 980px; margin: 0 auto; padding: 28px 20px 90px; }
-.scr  { display: none; animation: fadeIn .3s ease; }
-.scr.on { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ─── PANEL ─── */
-.panel {
-  background: var(--sur);
-  border: 1px solid var(--bd);
-  border-radius: var(--r);
-  padding: 22px 26px;
-  margin-bottom: 18px;
-  box-shadow: var(--sh);
-}
-.ph { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--bd); }
-.pi { width: 30px; height: 30px; border-radius: 8px; background: var(--gl); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
-.ptitle { font-family: 'Shippori Mincho', serif; font-size: 15px; font-weight: 700; color: var(--g); }
-.psub   { font-size: 11px; color: var(--txm); margin-top: 2px; }
-
-/* ─── PROG GRID ─── */
-.prog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 11px; }
-.pc {
-  background: var(--sur);
-  border: 1.5px solid var(--bd);
-  border-radius: var(--r);
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: all .22s;
-  position: relative;
-  overflow: hidden;
-}
-.pc::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--bd); transition: background .2s; }
-.pc:hover   { border-color: var(--g); box-shadow: var(--sh); }
-.pc:hover::before { background: var(--g); }
-.pc.sel     { border-color: var(--g); background: var(--gl); }
-.pc.sel::before { background: var(--g); }
-.pc.draft::after {
-  content: '下書きあり';
-  position: absolute; top: 8px; right: 8px;
-  background: var(--al); color: var(--ac);
-  font-size: 9px; font-weight: 700;
-  padding: 2px 7px; border-radius: 3px;
-  border: 1px solid #f0d08a;
-}
-.pv   { font-size: 10px; font-weight: 700; color: var(--txm); letter-spacing: .1em; margin-bottom: 3px; }
-.pd   { font-family: 'Shippori Mincho', serif; font-size: 17px; font-weight: 700; color: var(--g); margin-bottom: 6px; }
-.pp   { display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 3px; font-weight: 700; letter-spacing: .06em; margin-bottom: 7px; }
-.p1   { background: #E8F4FF; color: #1A5EA8; }
-.p2   { background: #FFF0E8; color: #B04010; }
-.p3   { background: var(--gl); color: var(--g); }
-.pt   { font-size: 12px; font-weight: 500; margin-bottom: 3px; }
-.pc2  { font-size: 11px; color: var(--txm); line-height: 1.45; }
-
-/* ─── TABS ─── */
-.tabs { display: flex; border-bottom: 1px solid var(--bd); margin-bottom: 22px; }
-.tab {
-  padding: 10px 20px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--txm);
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  margin-bottom: -1px;
-  transition: all .2s;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.tab:hover { color: var(--g); }
-.tab.on    { color: var(--g); border-bottom-color: var(--g); }
-.tbadge {
-  width: 18px; height: 18px; border-radius: 50%;
-  background: var(--bd); color: var(--txm);
-  font-size: 9px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-}
-.tab.on .tbadge { background: var(--g); color: #fff; }
-.tc    { display: none; }
-.tc.on { display: block; animation: fadeIn .2s ease; }
-
-/* ─── FORM ─── */
-.fg  { display: flex; flex-direction: column; gap: 4px; margin-bottom: 11px; }
-.fr  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.fr3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-.fl  { font-size: 11px; font-weight: 700; color: var(--txm); letter-spacing: .06em; }
-.req { color: #c0392b; margin-left: 2px; }
-input[type=text], input[type=url], input[type=datetime-local],
-select, textarea {
-  border: 1px solid var(--bd);
-  border-radius: 8px;
-  padding: 8px 11px;
-  font-size: 13px;
-  font-family: inherit;
-  color: var(--tx);
-  background: var(--sur);
-  width: 100%;
-  outline: none;
-  transition: border-color .2s, box-shadow .2s;
-}
-input:focus, select:focus, textarea:focus {
-  border-color: var(--g);
-  box-shadow: 0 0 0 3px rgba(26,107,60,.1);
-}
-textarea { resize: vertical; line-height: 1.65; }
-.cc  { font-size: 10px; color: var(--txm); text-align: right; margin-top: 3px; }
-.cc.warn { color: var(--ac); font-weight: 700; }
-.cc.over { color: #c0392b; font-weight: 700; }
-
-/* ─── EVENT CARD ─── */
-.ev-card {
-  background: var(--sur2);
-  border: 1px solid var(--bd);
-  border-radius: var(--r);
-  padding: 16px 18px;
-  margin-bottom: 12px;
-}
-.ev-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.ev-num  { font-size: 11px; font-weight: 700; color: var(--g); }
-.add-ev  {
-  border: 2px dashed var(--bd);
-  border-radius: var(--r);
-  padding: 13px;
-  text-align: center;
-  color: var(--txm);
-  cursor: pointer;
-  font-size: 13px;
-  transition: all .2s;
-}
-.add-ev:hover { border-color: var(--g); color: var(--g); background: var(--gl); }
-
-/* ─── BUTTONS ─── */
-.btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  border: none; border-radius: 8px;
-  padding: 9px 18px;
-  font-size: 13px; font-weight: 700; font-family: inherit;
-  cursor: pointer; transition: all .2s; white-space: nowrap; letter-spacing: .04em;
-}
-.btn-p  { background: linear-gradient(135deg, var(--g), #23935A); color: #fff; }
-.btn-p:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,107,60,.3); }
-.btn-p:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
-.btn-a  { background: linear-gradient(135deg, var(--ac), #E8A020); color: #fff; }
-.btn-a:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(212,144,26,.3); }
-.btn-g  { background: transparent; border: 1px solid var(--bd); color: var(--txm); }
-.btn-g:hover { border-color: var(--g); color: var(--g); background: var(--gl); }
-.btn-d  { background: #fdf0ef; border: 1px solid #f5c6c2; color: #c0392b; }
-.btn-d:hover { background: #f9e0de; }
-.btn-sm { padding: 5px 13px; font-size: 11px; }
-.btn-lg { padding: 12px 30px; font-size: 14px; border-radius: 10px; }
-.row  { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
-.ml   { margin-left: auto; }
-
-/* ─── KW CHIPS ─── */
-.kw-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 13px; }
-.kc {
-  padding: 5px 13px; border-radius: 100px;
-  border: 1.5px solid var(--bd);
-  font-size: 12px; font-weight: 700;
-  cursor: pointer; transition: all .2s;
-  color: var(--txm); background: var(--sur);
-}
-.kc:hover { border-color: var(--g); color: var(--g); }
-.kc.on    { background: var(--g); color: #fff; border-color: var(--g); }
-
-/* ─── STATUS ─── */
-.st { display: none; align-items: center; gap: 9px; padding: 10px 14px; border-radius: 8px; font-size: 13px; margin: 10px 0; }
-.st.load { display: flex; background: #e8f4ff; color: #1a5ea8; border: 1px solid #b8d8f8; }
-.st.err  { display: flex; background: #fdf0ef; color: #c0392b; border: 1px solid #f5c6c2; }
-.sp { width: 14px; height: 14px; border: 2px solid rgba(26,94,168,.2); border-top-color: #1a5ea8; border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ─── NEWS GRID ─── */
-.ng  { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-top: 14px; }
-.nc  { background: var(--sur2); border: 1.5px solid var(--bd); border-radius: var(--r); padding: 13px 15px; cursor: pointer; transition: all .22s; position: relative; }
-.nc:hover  { border-color: var(--g); box-shadow: var(--sh); }
-.nc.sel    { border-color: #2ec4a0; background: #f0faf8; }
-.nc.sel::after { content: '✓ 選択中'; position: absolute; top: 8px; right: 8px; background: #2ec4a0; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; }
-.ntags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 7px; }
-.nt   { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; letter-spacing: .06em; }
-.nt-k { background: var(--gl); color: var(--g); }
-.nt-n { background: #fff0e0; color: #c07000; }
-.nt-r { background: #e8faf5; color: #1a8060; }
-.nstars  { font-size: 11px; color: var(--ac); letter-spacing: -1px; }
-.ntitle  { font-size: 13px; font-weight: 700; line-height: 1.45; margin-bottom: 6px; }
-.nsum    { font-size: 11px; color: var(--txm); line-height: 1.6; margin-bottom: 7px; }
-.nrsn    { font-size: 10px; background: linear-gradient(135deg, #f0f4ff, #f8f0ff); border-left: 2px solid #6b9fe0; padding: 6px 9px; border-radius: 0 5px 5px 0; color: #3a4a70; line-height: 1.5; margin-bottom: 8px; }
-.nrsn b  { color: var(--g); font-size: 9px; letter-spacing: .04em; }
-.nft     { display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--txm); }
-.sel-bar { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--txm); margin-top: 9px; }
-.dot     { width: 8px; height: 8px; border-radius: 50%; background: var(--bd); }
-.dot.f   { background: #2ec4a0; }
-
-/* ─── COLUMN ─── */
-.col-meta { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--gl); border-radius: 8px; margin-bottom: 13px; border: 1px solid var(--bd); }
-.cm-lbl   { font-size: 10px; font-weight: 700; color: var(--txm); }
-.cm-val   { font-size: 13px; font-weight: 700; color: var(--g); }
-
-/* ─── PREVIEW ─── */
-.prev-tb { display: flex; align-items: center; gap: 9px; padding: 11px 16px; background: var(--sur); border: 1px solid var(--bd); border-radius: var(--r); margin-bottom: 14px; }
-.pmode   { padding: 6px 15px; border-radius: 7px; border: 1px solid var(--bd); background: transparent; font-size: 12px; font-family: inherit; cursor: pointer; color: var(--txm); transition: all .2s; }
-.pmode.on { background: var(--g); color: #fff; border-color: var(--g); }
-.prev-wrap { background: #e0e0e0; border-radius: var(--r); padding: 18px; text-align: center; margin-bottom: 14px; min-height: 400px; }
-.pframe   { border: none; background: #fff; border-radius: 4px; box-shadow: 0 4px 28px rgba(0,0,0,.16); transition: width .3s; width: 100%; max-width: 640px; }
-.pframe.mob { max-width: 390px; }
-.subj-row { display: flex; align-items: center; gap: 11px; padding: 11px 16px; background: var(--sur); border: 1px solid var(--bd); border-radius: var(--r); margin-bottom: 14px; }
-.subj-lbl { font-size: 11px; font-weight: 700; color: var(--txm); white-space: nowrap; letter-spacing: .06em; }
-.subj-in  { flex: 1; border: none; font-size: 14px; font-family: 'Shippori Mincho', serif; font-weight: 600; color: var(--tx); outline: none; background: transparent; }
-
-/* ─── OUTPUT ─── */
-.out-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.oc {
-  background: var(--sur);
-  border: 2px solid var(--bd);
-  border-radius: var(--r);
-  padding: 22px;
-  text-align: center;
-  cursor: pointer;
-  transition: all .25s;
-}
-.oc:hover { border-color: var(--g); box-shadow: var(--sh); transform: translateY(-2px); }
-.oc.done  { border-color: #2ec4a0; background: #f0faf8; }
-.oi  { font-size: 30px; margin-bottom: 10px; }
-.ott { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-.otd { font-size: 12px; color: var(--txm); line-height: 1.55; }
-.step-guide { font-size: 12px; color: var(--txm); line-height: 2.1; padding: 16px 20px; background: var(--sur2); border-radius: var(--r); border: 1px solid var(--bd); margin-top: 16px; }
-
-/* ─── NAV FOOTER ─── */
-.nav-footer {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--sur);
-  border-top: 1px solid var(--bd);
-  padding: 12px 32px;
-  display: flex; align-items: center; justify-content: space-between;
-  z-index: 100;
-  box-shadow: 0 -4px 16px rgba(26,107,60,.07);
-}
-.nav-info { font-size: 12px; color: var(--txm); }
-
-/* ─── GENERATING OVERLAY ─── */
-.gen-ov {
-  position: fixed; inset: 0;
-  background: rgba(17,72,39,.88);
-  z-index: 500;
-  display: none; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
-}
-.gen-ov.on { display: flex; }
-.gen-sp { width: 46px; height: 46px; border: 4px solid rgba(255,255,255,.2); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
-.gen-tx { color: #fff; font-size: 15px; font-weight: 500; text-align: center; line-height: 1.7; }
-
-/* ─── TOAST ─── */
-.toast {
-  position: fixed; bottom: 26px; right: 26px;
-  background: var(--gd); color: #fff;
-  padding: 11px 20px; border-radius: 10px;
-  font-size: 13px; font-weight: 500;
-  box-shadow: 0 4px 24px rgba(0,0,0,.2);
-  border-left: 3px solid var(--ac);
-  transform: translateY(60px); opacity: 0;
-  transition: all .3s; z-index: 999; max-width: 320px;
-}
-.toast.on { transform: translateY(0); opacity: 1; }
-
-/* ─── GAS SETUP BANNER ─── */
-.setup-banner {
-  background: #fff8e1; border: 1px solid #ffe082;
-  border-radius: var(--r); padding: 14px 18px;
-  margin-bottom: 20px; font-size: 13px; line-height: 1.7;
-  display: none;
-}
-.setup-banner.show { display: block; }
-.setup-banner strong { color: var(--ac); }
-
-@media (max-width: 640px) {
-  .ng, .out-grid { grid-template-columns: 1fr; }
-  .fr, .fr3       { grid-template-columns: 1fr; }
-  .prog-grid       { grid-template-columns: 1fr; }
-  .main            { padding: 16px 12px 90px; }
-  .app-hd          { padding: 0 16px; }
-  .nav-footer      { padding: 12px 16px; }
-}
+:root{--g:#1A6B3C;--gd:#114827;--gl:#EAF5EE;--ac:#D4901A;--al:#FDF3E0;
+  --tx:#1A2530;--txm:#6B7A8D;--bd:#D5E8DC;--bg:#F3F8F5;--sur:#fff;--sur2:#F7FAF8;--r:10px;--sh:0 2px 16px rgba(26,107,60,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Zen Kaku Gothic New','Hiragino Kaku Gothic ProN','Meiryo',sans-serif;background:var(--bg);color:var(--tx);font-size:14px;min-height:100vh}
+.app-hd{background:var(--gd);height:60px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;border-bottom:3px solid var(--ac);box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.hd-logo{font-family:'Shippori Mincho',serif;font-size:22px;color:#fff;letter-spacing:.08em}
+.hd-logo span{color:var(--ac);font-size:11px;letter-spacing:.14em;display:block;font-family:'Zen Kaku Gothic New',sans-serif;font-weight:300;margin-top:-2px}
+.vol-pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);font-size:11px;padding:4px 14px;border-radius:100px;transition:all .2s}
+.vol-pill.set{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:700}
+.stepper{background:var(--sur);border-bottom:1px solid var(--bd);display:flex}
+.stp{flex:1;padding:13px 6px 11px;text-align:center;cursor:pointer;border-bottom:3px solid transparent;color:var(--txm);font-size:12px;font-weight:500;transition:all .2s;opacity:.45}
+.stp small{display:block;font-size:10px;font-weight:400;margin-top:2px}
+.stp.active{opacity:1;border-bottom-color:var(--g);color:var(--g)}
+.stp.done{opacity:.7;color:var(--ac);border-bottom-color:var(--ac)}
+.main{max-width:980px;margin:0 auto;padding:24px 18px 90px}
+.scr{display:none;animation:fi .3s ease}.scr.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.panel{background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);padding:20px 24px;margin-bottom:16px;box-shadow:var(--sh)}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bd)}
+.pi{width:28px;height:28px;border-radius:8px;background:var(--gl);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ptitle{font-family:'Shippori Mincho',serif;font-size:15px;font-weight:700;color:var(--g)}
+.psub{font-size:11px;color:var(--txm);margin-top:2px}
+/* PROG */
+.prog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:10px}
+.pc{background:var(--sur);border:1.5px solid var(--bd);border-radius:var(--r);padding:13px 15px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.pc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bd);transition:background .2s}
+.pc:hover{border-color:var(--g)}.pc:hover::before{background:var(--g)}
+.pc.sel{border-color:var(--g);background:var(--gl)}.pc.sel::before{background:var(--g)}
+.pc.draft::after{content:'下書きあり';position:absolute;top:7px;right:7px;background:var(--al);color:var(--ac);font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;border:1px solid #f0d08a}
+.pv{font-size:10px;font-weight:700;color:var(--txm);letter-spacing:.1em;margin-bottom:3px}
+.pd{font-family:'Shippori Mincho',serif;font-size:17px;font-weight:700;color:var(--g);margin-bottom:5px}
+.pp{display:inline-block;font-size:9px;padding:2px 7px;border-radius:3px;font-weight:700;letter-spacing:.06em;margin-bottom:6px}
+.p1{background:#E8F4FF;color:#1A5EA8}.p2{background:#FFF0E8;color:#B04010}.p3{background:var(--gl);color:var(--g)}
+.pt{font-size:12px;font-weight:500;margin-bottom:3px}.pc2{font-size:11px;color:var(--txm);line-height:1.45}
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--bd);margin-bottom:20px;overflow-x:auto}
+.tab{padding:9px 14px;font-size:12px;font-weight:700;color:var(--txm);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;transition:all .2s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab:hover{color:var(--g)}.tab.on{color:var(--g);border-bottom-color:var(--g)}
+.tbadge{width:17px;height:17px;border-radius:50%;background:var(--bd);color:var(--txm);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tab.on .tbadge{background:var(--g);color:#fff}
+.tc{display:none}.tc.on{display:block;animation:fi .2s ease}
+/* FORM */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:11px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fl{font-size:11px;font-weight:700;color:var(--txm);letter-spacing:.06em}
+input[type=text],input[type=url],select,textarea{border:1px solid var(--bd);border-radius:8px;padding:8px 11px;font-size:13px;font-family:inherit;color:var(--tx);background:var(--sur);width:100%;outline:none;transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(26,107,60,.1)}
+textarea{resize:vertical;line-height:1.65}
+.cc{font-size:10px;color:var(--txm);text-align:right;margin-top:3px}
+.cc.warn{color:var(--ac);font-weight:700}.cc.over{color:#c0392b;font-weight:700}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .2s;white-space:nowrap;letter-spacing:.04em}
+.btn-p{background:linear-gradient(135deg,var(--g),#23935A);color:#fff}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,107,60,.3)}
+.btn-p:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-g{background:transparent;border:1px solid var(--bd);color:var(--txm)}
+.btn-g:hover{border-color:var(--g);color:var(--g);background:var(--gl)}
+.btn-d{background:#fdf0ef;border:1px solid #f5c6c2;color:#c0392b}
+.btn-sm{padding:5px 12px;font-size:11px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ml{margin-left:auto}
+/* STATUS */
+.st{display:none;align-items:center;gap:9px;padding:9px 13px;border-radius:8px;font-size:12px;margin:8px 0}
+.st.load{display:flex;background:#e8f4ff;color:#1a5ea8;border:1px solid #b8d8f8}
+.st.err{display:flex;background:#fdf0ef;color:#c0392b;border:1px solid #f5c6c2}
+.st.ok{display:flex;background:var(--gl);color:var(--g);border:1px solid var(--bd)}
+.sp{width:14px;height:14px;border:2px solid rgba(26,94,168,.2);border-top-color:#1a5ea8;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* SECTION ORDER (number input) */
+.sec-order-wrap{background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);padding:18px 20px;margin-bottom:16px;box-shadow:var(--sh)}
+.sec-order-title{font-size:12px;font-weight:700;color:var(--txm);letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-order-title::before{content:'';display:block;width:3px;height:13px;background:var(--ac);border-radius:2px}
+.sec-list{display:flex;flex-direction:column;gap:7px}
+.sec-item{display:flex;align-items:center;gap:12px;background:var(--sur2);border:1.5px solid var(--bd);border-radius:8px;padding:10px 14px;transition:border-color .2s}
+.sec-item.no-content{opacity:.5;border-style:dashed}
+.sec-num-input{width:44px;height:34px;border:1.5px solid var(--bd);border-radius:6px;text-align:center;font-size:16px;font-weight:700;font-family:inherit;color:var(--g);background:var(--sur);outline:none;transition:border-color .2s;-moz-appearance:textfield}
+.sec-num-input::-webkit-inner-spin-button,.sec-num-input::-webkit-outer-spin-button{-webkit-appearance:none}
+.sec-num-input:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(26,107,60,.1)}
+.sec-num-input.dup{border-color:#c0392b;background:#fdf0ef}
+.sec-icon{font-size:15px;flex-shrink:0}
+.sec-label{font-size:13px;font-weight:500;flex:1}
+.sec-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px}
+.sec-status.has{background:var(--gl);color:var(--g)}
+.sec-status.none{background:var(--sur);border:1px solid var(--bd);color:var(--txm)}
+/* EVENT / MUNIC */
+.fev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-bottom:12px}
+.fev-item{background:var(--sur);border:1.5px solid var(--bd);border-radius:8px;padding:9px 12px;cursor:pointer;transition:all .2s;font-size:12px;font-weight:500}
+.fev-item:hover{border-color:var(--g);background:var(--gl)}
+.fev-item.sel{border-color:var(--g);background:var(--gl);color:var(--g)}
+.fev-item.sel::before{content:'✓ '}
+.fev-empty,.munic-empty{font-size:12px;color:var(--txm);padding:12px;background:var(--sur2);border-radius:8px;text-align:center}
+.slot-card{background:var(--sur2);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-bottom:9px}
+.slot-name{font-weight:700;color:var(--g);margin-bottom:3px;font-size:13px}
+.slot-desc{color:var(--txm);line-height:1.55;font-size:12px;margin-bottom:3px}
+.slot-url{color:var(--g);font-size:11px;word-break:break-all}
+/* NEWS */
+.kw-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.kc{padding:5px 13px;border-radius:100px;border:1.5px solid var(--bd);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;color:var(--txm);background:var(--sur)}
+.kc:hover{border-color:var(--g);color:var(--g)}.kc.on{background:var(--g);color:#fff;border-color:var(--g)}
+.ng{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px}
+.nc{background:var(--sur2);border:1.5px solid var(--bd);border-radius:var(--r);padding:12px 14px;cursor:pointer;transition:all .22s;position:relative}
+.nc:hover{border-color:var(--g)}.nc.sel{border-color:#2ec4a0;background:#f0faf8}
+.nc.sel::after{content:'✓';position:absolute;top:8px;right:8px;background:#2ec4a0;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px}
+.ntags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.nt{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px}
+.nt-k{background:var(--gl);color:var(--g)}.nt-n{background:#fff0e0;color:#c07000}.nt-r{background:#e8faf5;color:#1a8060}
+.nstars{font-size:11px;color:var(--ac);letter-spacing:-1px}
+.ntitle{font-size:12px;font-weight:700;line-height:1.45;margin-bottom:5px}
+.nsum{font-size:11px;color:var(--txm);line-height:1.6;margin-bottom:6px}
+.nrsn{font-size:10px;background:linear-gradient(135deg,#f0f4ff,#f8f0ff);border-left:2px solid #6b9fe0;padding:5px 8px;border-radius:0 5px 5px 0;color:#3a4a70;line-height:1.5;margin-bottom:7px}
+.nft{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--txm)}
+.sel-bar{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txm);margin-top:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--bd)}.dot.f{background:#2ec4a0}
+/* COLUMN */
+.col-meta{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--gl);border-radius:8px;margin-bottom:12px}
+.cm-lbl{font-size:10px;font-weight:700;color:var(--txm)}.cm-val{font-size:13px;font-weight:700;color:var(--g)}
+/* PREVIEW */
+.prev-tb{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:12px}
+.pmode{padding:5px 13px;border-radius:7px;border:1px solid var(--bd);background:transparent;font-size:12px;font-family:inherit;cursor:pointer;color:var(--txm);transition:all .2s}
+.pmode.on{background:var(--g);color:#fff;border-color:var(--g)}
+.prev-wrap{background:#e0e0e0;border-radius:var(--r);padding:16px;text-align:center;min-height:360px}
+.pframe{border:none;background:#fff;border-radius:4px;box-shadow:0 4px 28px rgba(0,0,0,.16);width:100%;max-width:640px;transition:max-width .3s}
+.pframe.mob{max-width:390px}
+.subj-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:12px}
+.subj-lbl{font-size:11px;font-weight:700;color:var(--txm);white-space:nowrap;letter-spacing:.06em}
+.subj-in{flex:1;border:none;font-size:14px;font-family:'Shippori Mincho',serif;font-weight:600;color:var(--tx);outline:none;background:transparent}
+/* OUTPUT */
+.out-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.oc{background:var(--sur);border:2px solid var(--bd);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;transition:all .25s}
+.oc:hover{border-color:var(--g);box-shadow:var(--sh);transform:translateY(-2px)}
+.oc.done{border-color:#2ec4a0;background:#f0faf8}
+.oi{font-size:28px;margin-bottom:8px}.ott{font-size:13px;font-weight:700;margin-bottom:5px}
+.otd{font-size:11px;color:var(--txm);line-height:1.55}
+.step-guide{font-size:12px;color:var(--txm);line-height:2;padding:14px 18px;background:var(--sur2);border-radius:var(--r);border:1px solid var(--bd);margin-top:14px}
+.setup-banner{background:#fff8e1;border:1px solid #ffe082;border-radius:var(--r);padding:13px 17px;margin-bottom:18px;font-size:13px;line-height:1.7;display:none}
+.setup-banner.show{display:block}
+.nav-footer{position:fixed;bottom:0;left:0;right:0;background:var(--sur);border-top:1px solid var(--bd);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;z-index:100;box-shadow:0 -4px 16px rgba(26,107,60,.07)}
+.nav-info{font-size:12px;color:var(--txm)}
+.gen-ov{position:fixed;inset:0;background:rgba(17,72,39,.88);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+.gen-ov.on{display:flex}
+.gen-sp{width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+.gen-tx{color:#fff;font-size:14px;font-weight:500;text-align:center;line-height:1.7}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--gd);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 4px 24px rgba(0,0,0,.2);border-left:3px solid var(--ac);transform:translateY(60px);opacity:0;transition:all .3s;z-index:999;max-width:300px}
+.toast.on{transform:translateY(0);opacity:1}
+@media(max-width:640px){.ng,.out-grid,.fr{grid-template-columns:1fr}.prog-grid{grid-template-columns:1fr}.main{padding:16px 12px 90px}}
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════
-     GAS URL 設定（ここだけ変更してください）
-══════════════════════════════════════ -->
 <script>
-// ▼ GAS WebApp のデプロイURLを貼り付けてください
-const GAS_URL = 'https://script.google.com/a/macros/agent-network.com/s/AKfycbxOK7vwIdBUbIjZLJzexE9PZGIlj9yPF0LAcv89VdhcaDQzlxv2m-rcR_2AEk3ZiWJM9g/exec';
+const GAS_URL = 'YOUR_GAS_WEBAPP_URL_HERE';
 </script>
 
-<!-- HEADER -->
 <header class="app-hd">
-  <div class="hd-brand">
-    <div class="hd-logo">ふるのば<span>MAILMAG SYSTEM</span></div>
-  </div>
+  <div><div class="hd-logo">ふるのば<span>MAILMAG SYSTEM v2</span></div></div>
   <div class="vol-pill" id="hbadge">号数未選択</div>
 </header>
 
-<!-- STEPPER -->
 <div class="stepper">
   <div class="stp active" onclick="gostep(1)">号数選択<small>番組表</small></div>
-  <div class="stp"        onclick="gostep(2)">コンテンツ入力<small>3ブロック</small></div>
-  <div class="stp"        onclick="gostep(3)">プレビュー<small>HTML確認</small></div>
-  <div class="stp"        onclick="gostep(4)">出力<small>HubSpot</small></div>
+  <div class="stp" onclick="gostep(2)">コンテンツ<small>5ブロック</small></div>
+  <div class="stp" onclick="gostep(3)">順番・確認<small>ドラッグ整列</small></div>
+  <div class="stp" onclick="gostep(4)">プレビュー<small>HTML確認</small></div>
+  <div class="stp" onclick="gostep(5)">出力<small>HubSpot</small></div>
 </div>
 
 <div class="main">
+  <div class="setup-banner" id="setupBanner">⚠️ <strong>初期設定：</strong> GAS_URL にデプロイURLを設定してください。</div>
 
-  <!-- GAS未設定バナー -->
-  <div class="setup-banner" id="setupBanner">
-    ⚠️ <strong>初期設定が必要です：</strong>
-    index.html の <code>GAS_URL</code> にGASのデプロイURLを貼り付けてください。
-    詳しくはREADME.mdを参照してください。
-  </div>
-
-  <!-- STEP 1: 番組表 -->
+  <!-- STEP1: 番組表 -->
   <div class="scr on" id="s1">
     <div class="panel">
-      <div class="ph">
-        <div class="pi">📅</div>
-        <div><div class="ptitle">メールマガジン 番組表</div><div class="psub">配信する号をクリックして選択してください</div></div>
-      </div>
+      <div class="ph"><div class="pi">📅</div><div><div class="ptitle">メールマガジン 番組表</div><div class="psub">配信する号をクリックして選択してください</div></div></div>
       <div class="prog-grid" id="pgrid"></div>
     </div>
   </div>
 
-  <!-- STEP 2: コンテンツ入力 -->
+  <!-- STEP2: コンテンツ入力 -->
   <div class="scr" id="s2">
     <div class="tabs">
-      <div class="tab on" onclick="swtab('ev',this)">📅 イベント情報<div class="tbadge" id="evb">0</div></div>
-      <div class="tab"    onclick="swtab('nw',this)">📰 ニュースピック<div class="tbadge" id="nwb">0</div></div>
-      <div class="tab"    onclick="swtab('col',this)">📚 コラム<div class="tbadge" id="colb">0</div></div>
+      <div class="tab on" onclick="swtab('city',this)">🏛 自治体情報<div class="tbadge" id="cityb">0</div></div>
+      <div class="tab" onclick="swtab('fev',this)">🎪 イベント案内<div class="tbadge" id="fevb"URL
+>0</div></div>
+      <div class="tab" onclick="swtab('mun',this)">💴 企業版ふるさと納税<div class="tbadge" id="munb">0</div></div>
+      <div class="tab" onclick="swtab('nw',this)">📰 ニュースピック<div class="tbadge" id="nwb">0</div></div>
+      <div class="tab" onclick="swtab('col',this)">📚 コラム<div class="tbadge" id="colb">0</div></div>
     </div>
 
-    <!-- イベント -->
-    <div class="tc on" id="tc-ev">
-      <div id="evlist"></div>
-      <div class="add-ev" id="addev" onclick="addev()">＋ イベントを追加（最大3件）</div>
+    <!-- 自治体情報 -->
+    <div class="tc on" id="tc-city">
+      <div class="panel">
+        <div class="ph"><div class="pi">🏛</div><div><div class="ptitle">自治体からの情報提供</div><div class="psub">原文を貼り付け → AIが読者向けに整形します</div></div></div>
+        <div class="fg"><label class="fl">原文テキスト</label>
+          <textarea id="cityRaw" rows="5" placeholder="自治体から受け取った情報をそのまま貼り付けてください" oninput="svd()"></textarea></div>
+        <div class="row" style="margin-bottom:12px">
+          <button class="btn btn-p" id="fmtBtn" onclick="formatCity()">✨ AI整形する</button>
+          <button class="btn btn-g btn-sm" onclick="clearCity()">クリア</button>
+        </div>
+        <div class="st" id="citySt"><div class="sp"></div><span id="cityStx">整形中...</span></div>
+        <div class="fg" id="cityOutFg" style="display:none">
+          <label class="fl">整形後テキスト（編集可）</label>
+          <textarea id="cityOut" rows="5" oninput="updCityBadge();svd()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ふるのばイベント -->
+    <div class="tc" id="tc-fev">
+      <div class="panel">
+        <div class="ph"><div class="pi">🎪</div><div><div class="ptitle">ふるのばイベント案内</div><div class="psub">スプシ「events」シートから選択（最大3件）</div></div></div>
+        <div class="row" style="margin-bottom:12px">
+          <button class="btn btn-g btn-sm" onclick="loadEvents()">🔄 イベント一覧を取得</button>
+        </div>
+        <div class="st" id="fevSt"><div class="sp"></div><span id="fevStx"></span></div>
+        <div class="fev-grid" id="fevGrid"><div class="fev-empty">「イベント一覧を取得」を押してください</div></div>
+        <div id="fevSelectedArea"></div>
+      </div>
+    </div>
+
+    <!-- 企業版ふるさと納税 -->
+    <div class="tc" id="tc-mun">
+      <div class="panel">
+        <div class="ph"><div class="pi">💴</div><div><div class="ptitle">企業版ふるさと納税のご案内</div><div class="psub">スプシ「municipalities」シートから最大2自治体を選択</div></div></div>
+        <div class="row" style="margin-bottom:12px">
+          <button class="btn btn-g btn-sm" onclick="loadMunics()">🔄 自治体一覧を取得</button>
+        </div>
+        <div class="st" id="munSt"><div class="sp"></div><span>取得中...</span></div>
+        <div class="fg"><label class="fl">1件目</label><select id="mun0" onchange="selectMunic(0)"><option value="">— 自治体を選択 —</option></select></div>
+        <div class="fg"><label class="fl">2件目</label><select id="mun1" onchange="selectMunic(1)"><option value="">— 自治体を選択 —</option></select></div>
+        <div id="munCards"></div>
+      </div>
     </div>
 
     <!-- ニュース -->
     <div class="tc" id="tc-nw">
       <div class="panel">
-        <div class="ph"><div class="pi">🔍</div><div><div class="ptitle">ニュース収集</div><div class="psub">キーワードを選んで最新ニュースを自動収集します</div></div></div>
+        <div class="ph"><div class="pi">🔍</div><div><div class="ptitle">ニュースピック</div><div class="psub">キーワードを選んで最新ニュースを自動収集します</div></div></div>
         <div class="kw-chips" id="kwchips"></div>
         <div class="row" style="margin-bottom:12px">
           <input type="text" id="ckw" placeholder="追加キーワード（任意）" style="flex:1">
           <button class="btn btn-p" id="fnbtn" onclick="fetchNews()">🔍 ニュースを収集する</button>
         </div>
         <div class="st" id="nwst"><div class="sp"></div><span id="nwstx"></span></div>
-        <div class="sel-bar" id="selbar" style="display:none">
-          選択：<div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div>
-          <span id="selnum">0件</span>（2〜3件を推奨）
-        </div>
+        <div class="sel-bar" id="selbar" style="display:none">選択：<div class="dot" id="d0"></div><div class="dot" id="d1"></div><div class="dot" id="d2"></div><span id="selnum">0件</span>（2〜3件を推奨）</div>
         <div class="ng" id="ngrid"></div>
       </div>
     </div>
@@ -459,200 +256,171 @@ const GAS_URL = 'https://script.google.com/a/macros/agent-network.com/s/AKfycbxO
     <!-- コラム -->
     <div class="tc" id="tc-col">
       <div class="panel">
-        <div class="ph"><div class="pi">📝</div><div><div class="ptitle">コラム（お役立ち情報）</div><div class="psub">今号のテーマに合わせてAIが草案を生成します</div></div></div>
+        <div class="ph"><div class="pi">📝</div><div><div class="ptitle">公民共創コラム</div><div class="psub">今号のテーマに合わせてAIが草案を生成します</div></div></div>
         <div class="col-meta"><div class="cm-lbl">今号のテーマ</div><div class="cm-val" id="coltheme">—</div></div>
         <div class="row" style="margin-bottom:12px">
           <button class="btn btn-p" id="gcolbtn" onclick="genCol()">✨ 草案を生成する</button>
           <button class="btn btn-g btn-sm" onclick="genCol(true)">↺ 再生成</button>
           <button class="btn btn-g btn-sm" onclick="document.getElementById('coltxt').value='';updcc()">クリア</button>
         </div>
-        <div class="st" id="colst"><div class="sp"></div><span>コラムを生成中...</span></div>
-        <textarea id="coltxt" rows="14" placeholder="「草案を生成する」を押すとここにコラム本文が生成されます" oninput="updcc();svd()"></textarea>
+        <div class="st" id="colst"><div class="sp"></div><span>生成中...</span></div>
+        <textarea id="coltxt" rows="13" placeholder="「草案を生成する」を押すとコラム本文が生成されます" oninput="updcc();svd()"></textarea>
         <div class="cc" id="colcc">0 / 800字</div>
       </div>
     </div>
   </div>
 
-  <!-- STEP 3: プレビュー -->
+  <!-- STEP3: セクション順 -->
   <div class="scr" id="s3">
-    <div class="subj-row">
-      <span class="subj-lbl">件名</span>
-      <input class="subj-in" id="subjin" type="text" placeholder="件名を入力...">
+    <div class="sec-order-wrap">
+      <div class="sec-order-title">各セクションの表示順を数字で入力してください</div>
+      <div style="font-size:12px;color:var(--txm);margin-bottom:16px">
+        1〜5の数字を入力して表示順を指定します。同じ番号は使えません。<br>
+        <strong style="color:var(--g)">未入力のセクションは自動的にスキップされます。</strong>
+      </div>
+      <div class="sec-list" id="secList"></div>
+      <div id="secDupWarn" style="display:none;margin-top:10px;font-size:12px;color:#c0392b;font-weight:700">
+        ⚠️ 同じ番号が重複しています。それぞれ異なる番号を入力してください。
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn btn-g btn-sm" onclick="resetSecOrder()">↺ デフォルト順にリセット</button>
+        <button class="btn btn-p btn-sm" onclick="applySecOrder()">✓ この順番で確定</button>
+      </div>
     </div>
-    <div class="prev-tb">
-      <button class="pmode on" onclick="setpm('dt',this)">🖥 デスクトップ</button>
-      <button class="pmode"    onclick="setpm('mb',this)">📱 モバイル</button>
-      <div class="ml"><button class="btn btn-g btn-sm" onclick="genHtml()">↺ 再生成</button></div>
-    </div>
-    <div class="prev-wrap">
-      <iframe id="pframe" class="pframe" height="680" sandbox="allow-same-origin"></iframe>
+    <div class="panel" style="padding:14px 18px">
+      <div style="font-size:12px;color:var(--txm);font-weight:700;margin-bottom:10px;letter-spacing:.06em">確定後のプレビュー順</div>
+      <div id="secSummary"><div style="font-size:12px;color:var(--txm)">「この順番で確定」を押すと表示順が確定します</div></div>
     </div>
   </div>
 
-  <!-- STEP 4: 出力 -->
+  <!-- STEP4: プレビュー -->
   <div class="scr" id="s4">
+    <div class="subj-row"><span class="subj-lbl">件名</span><input class="subj-in" id="subjin" type="text" placeholder="件名を入力..."></div>
+    <div class="prev-tb">
+      <button class="pmode on" onclick="setpm('dt',this)">🖥 デスクトップ</button>
+      <button class="pmode" onclick="setpm('mb',this)">📱 モバイル</button>
+      <div class="ml"><button class="btn btn-g btn-sm" onclick="genHtml()">↺ 再生成</button></div>
+    </div>
+    <div class="prev-wrap"><iframe id="pframe" class="pframe" height="700" sandbox="allow-same-origin allow-popups"></iframe></div>
+  </div>
+
+  <!-- STEP5: 出力 -->
+  <div class="scr" id="s5">
     <div class="out-grid">
-      <div class="oc" id="oca" onclick="copHub()">
-        <div class="oi">📋</div>
-        <div class="ott">HubSpot用HTMLをコピー</div>
-        <div class="otd">メールエディタの「ソースコード」欄に貼り付けてください</div>
-      </div>
-      <div class="oc" id="ocb" onclick="copTxt()">
-        <div class="oi">📄</div>
-        <div class="ott">テキスト版をコピー</div>
-        <div class="otd">HTMLタグを除いたプレーンテキストをコピーします</div>
-      </div>
+      <div class="oc" id="oca" onclick="copHub()"><div class="oi">📋</div><div class="ott">HubSpot用HTMLをコピー</div><div class="otd">メールエディタの「ソースコード」欄に貼り付け</div></div>
+      <div class="oc" id="ocb" onclick="copTxt()"><div class="oi">📄</div><div class="ott">テキスト版をコピー</div><div class="otd">プレーンテキストをコピーします</div></div>
     </div>
     <div class="step-guide">
       <strong>HubSpot 貼り付け手順</strong><br>
       1. HubSpot → マーケティング → メール → 新規メール作成<br>
-      2. メールエディタ右上の「ソースコード（&lt;/&gt;）」をクリック<br>
+      2. 右上「ソースコード（&lt;/&gt;）」をクリック<br>
       3. コピーしたHTMLを貼り付けて「適用」<br>
-      4. 件名を入力：<strong id="subjprev" style="color:var(--tx)">—</strong><br>
+      4. 件名：<strong id="subjprev" style="color:var(--tx)">—</strong><br>
       5. 送信テストを実施してから本配信
     </div>
   </div>
+</div>
 
-</div><!-- /main -->
-
-<!-- NAV FOOTER -->
 <div class="nav-footer">
   <button class="btn btn-g" id="btnback" onclick="navback()" style="display:none">← 戻る</button>
   <div class="nav-info" id="navinfo">号数を選択してください</div>
-  <button class="btn btn-p btn-lg" id="btnnext" onclick="navnext()" disabled>次へ →</button>
+  <button class="btn btn-p" style="padding:12px 28px;font-size:14px;border-radius:10px" id="btnnext" onclick="navnext()" disabled>次へ →</button>
 </div>
-
-<!-- GENERATING OVERLAY -->
-<div class="gen-ov" id="genov">
-  <div class="gen-sp"></div>
-  <div class="gen-tx" id="gentx">処理中...<br>少しお待ちください</div>
-</div>
-
-<!-- TOAST -->
+<div class="gen-ov" id="genov"><div class="gen-sp"></div><div class="gen-tx" id="gentx">処理中...</div></div>
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════
-// MASTER DATA
-// ══════════════════════════════════════
-const PROG = [
-  {v:1,  dt:'4/29(火)', ph:1, main:'創刊号',                 col:'公民共創とは何か？',             kw:['公民共創','公民連携','地方創生']},
-  {v:2,  dt:'5/6(火)',  ph:1, main:'連携vs共創特集',          col:'公民連携vs公民共創の違い',       kw:['公民共創','公民連携','官民連携']},
-  {v:3,  dt:'5/13(火)', ph:1, main:'自治体課題紹介',          col:'自治体が抱える3大課題',          kw:['公民共創','自治体DX','地方創生']},
-  {v:4,  dt:'5/20(火)', ph:1, main:'企業インタビュー①',       col:'企業が公民連携に取り組む理由',   kw:['公民連携','企業版ふるさと納税','ESG']},
-  {v:5,  dt:'5/27(火)', ph:2, main:'ReversePitchレポート',    col:'リバースピッチとは何か',         kw:['リバースピッチ','公民共創','公民連携']},
-  {v:6,  dt:'6/3(火)',  ph:2, main:'企業版ふるさと納税ガイド', col:'企業版ふるさと納税の基本と活用法',kw:['企業版ふるさと納税','地方創生','官民連携']},
-  {v:7,  dt:'6/10(火)', ph:2, main:'自治体インタビュー①',     col:'自治体の公民連携窓口の探し方',   kw:['公民連携','自治体DX','地方創生']},
-  {v:8,  dt:'6/17(火)', ph:2, main:'ふるのばMeet告知',        col:'対話型イベントを最大活用する方法',kw:['公民共創','リバースピッチ','公民連携']},
-  {v:9,  dt:'6/24(火)', ph:2, main:'共創事例①（地域DX）',    col:'実証実験（PoC）の進め方',        kw:['自治体DX','公民共創','地方創生']},
-  {v:10, dt:'7/1(火)',  ph:3, main:'企業インタビュー②',       col:'行政の「年度」サイクルを理解する',kw:['公民連携','官民連携','地方創生']},
-  {v:11, dt:'7/8(火)',  ph:3, main:'夏イベント先行告知',       col:'地方創生関連制度の全体マップ',   kw:['企業版ふるさと納税','地方創生','関係人口']},
-  {v:12, dt:'7/15(火)', ph:3, main:'共創事例②（関係人口）',  col:'関係人口とは何か',               kw:['関係人口','地方創生','公民共創']},
-  {v:13, dt:'7/22(火)', ph:3, main:'3ヶ月振り返り特集',       col:'公民共創の成功要因・失敗要因',   kw:['公民共創','公民連携','地方創生']},
+// ─── MASTER DATA ─────────────────────────
+const PROG=[
+  {v:1, dt:'4/29(火)',ph:1,main:'創刊号',               col:'公民共創とは何か？',              kw:['公民共創','公民連携','地方創生']},
+  {v:2, dt:'5/6(火)', ph:1,main:'連携vs共創特集',        col:'公民連携vs公民共創の違い',        kw:['公民共創','公民連携','官民連携']},
+  {v:3, dt:'5/13(火)',ph:1,main:'自治体課題紹介',        col:'自治体が抱える3大課題',           kw:['公民共創','自治体DX','地方創生']},
+  {v:4, dt:'5/20(火)',ph:1,main:'企業インタビュー①',     col:'企業が公民連携に取り組む理由',    kw:['公民連携','企業版ふるさと納税','ESG']},
+  {v:5, dt:'5/27(火)',ph:2,main:'ReversePitchレポート',  col:'リバースピッチとは何か',          kw:['リバースピッチ','公民共創','公民連携']},
+  {v:6, dt:'6/3(火)', ph:2,main:'企業版ふるさと納税ガイド',col:'企業版ふるさと納税の基本と活用法',kw:['企業版ふるさと納税','地方創生','官民連携']},
+  {v:7, dt:'6/10(火)',ph:2,main:'自治体インタビュー①',   col:'自治体の公民連携窓口の探し方',    kw:['公民連携','自治体DX','地方創生']},
+  {v:8, dt:'6/17(火)',ph:2,main:'ふるのばMeet告知',      col:'対話型イベントを最大活用する方法', kw:['公民共創','リバースピッチ','公民連携']},
+  {v:9, dt:'6/24(火)',ph:2,main:'共創事例①（地域DX）',  col:'実証実験（PoC）の進め方',         kw:['自治体DX','公民共創','地方創生']},
+  {v:10,dt:'7/1(火)', ph:3,main:'企業インタビュー②',     col:'行政の「年度」サイクルを理解する', kw:['公民連携','官民連携','地方創生']},
+  {v:11,dt:'7/8(火)', ph:3,main:'夏イベント先行告知',    col:'地方創生関連制度の全体マップ',    kw:['企業版ふるさと納税','地方創生','関係人口']},
+  {v:12,dt:'7/15(火)',ph:3,main:'共創事例②（関係人口）', col:'関係人口とは何か',               kw:['関係人口','地方創生','公民共創']},
+  {v:13,dt:'7/22(火)',ph:3,main:'3ヶ月振り返り特集',     col:'公民共創の成功要因・失敗要因',    kw:['公民共創','公民連携','地方創生']},
 ];
-const PH = {1:'Phase 1 基礎理解', 2:'Phase 2 実践知', 3:'Phase 3 深化'};
-const PC = {1:'p1', 2:'p2', 3:'p3'};
-const ALLKW = ['公民共創','公民連携','地方創生','企業版ふるさと納税','自治体DX','関係人口','リバースピッチ','官民連携'];
+const PH={1:'Phase 1 基礎理解',2:'Phase 2 実践知',3:'Phase 3 深化'};
+const PC={1:'p1',2:'p2',3:'p3'};
+const ALLKW=['公民共創','公民連携','地方創生','企業版ふるさと納税','自治体DX','関係人口','リバースピッチ','官民連携'];
 
-// ══════════════════════════════════════
-// STATE
-// ══════════════════════════════════════
-let step = 1, selv = null;
-let evs = [], arts = [], seln = new Set();
-let ghtml = '', gsubj = '';
-let akws = new Set();
-let draftVols = new Set(); // スプシから取得した下書き済みvol
+// セクション定義（デフォルト順）
+const SEC_DEFS=[
+  {id:'city', icon:'🏛', label:'自治体からの情報提供'},
+  {id:'fev',  icon:'🎪', label:'ふるのばイベント案内'},
+  {id:'mun',  icon:'💴', label:'企業版ふるさと納税'},
+  {id:'nw',   icon:'📰', label:'ニュースピック'},
+  {id:'col',  icon:'📚', label:'公民共創コラム'},
+];
 
-// ══════════════════════════════════════
-// GAS API CALL
-// ══════════════════════════════════════
-async function gasCall(action, extra = {}) {
-  if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEBAPP_URL_HERE') {
-    throw new Error('GAS_URL が設定されていません。index.html を編集してください。');
-  }
-  const res = await fetch(GAS_URL, {
-    method:  'POST',
-    headers: { 'Content-Type': 'text/plain' }, // GASはapplication/jsonでCORSエラーになるためtext/plain
-    body:    JSON.stringify({ action, ...extra }),
-    redirect: 'follow',
-  });
-  if (!res.ok) throw new Error('GAS通信エラー: ' + res.status);
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return data;
+// ─── STATE ───────────────────────────────
+let step=1, selv=null;
+let arts=[], seln=new Set(), akws=new Set();
+let ghtml='', gsubj='';
+let draftVols=new Set();
+let eventsCache=[], fevSelected=[];
+let municsCache=[], munSelected=[null,null];
+let secOrder=[...SEC_DEFS.map(s=>s.id)]; // 表示順
+let secNums={}; // {id->番号}
+
+// ─── GAS CALL ────────────────────────────
+async function gasCall(action,extra={}){
+  if(!GAS_URL||GAS_URL==='https://script.google.com/macros/library/d/1Qj6Pk08FII5VW1lZGLMrVgEq50SQWA5bMvgvR-cGTO7AcvHwKoblPOkK/3') throw new Error('GAS_URLが未設定です');
+  const p=encodeURIComponent(JSON.stringify({action,...extra}));
+  const res=await fetch(GAS_URL+'?payload='+p,{redirect:'follow'});
+  if(!res.ok) throw new Error('GAS通信エラー: '+res.status);
+  const txt=await res.text();
+  let d; try{d=JSON.parse(txt);}catch(e){throw new Error('レスポンス解析エラー');}
+  if(d.error) throw new Error(d.error);
+  return d;
 }
 
-// ══════════════════════════════════════
-// INIT
-// ══════════════════════════════════════
-window.addEventListener('DOMContentLoaded', async () => {
-  if (!GAS_URL || GAS_URL === 'YOUR_GAS_WEBAPP_URL_HERE') {
-    document.getElementById('setupBanner').classList.add('show');
-  }
-  buildProg();
-  // 下書き一覧を非同期で取得してバッジ表示
-  try {
-    const r = await gasCall('listDrafts');
-    draftVols = new Set((r.drafts || []).map(d => String(d.vol)));
-    buildProg(); // 再描画してバッジを反映
-  } catch(e) { /* GAS未設定時は無視 */ }
-});
+// ─── UTILS ───────────────────────────────
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2800)}
+function showOv(m){document.getElementById('gentx').innerHTML=m;document.getElementById('genov').classList.add('on')}
+function hideOv(){document.getElementById('genov').classList.remove('on')}
 
-// ══════════════════════════════════════
-// UTILS
-// ══════════════════════════════════════
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function toast(m) {
-  const t = document.getElementById('toast');
-  t.textContent = m; t.classList.add('on');
-  setTimeout(() => t.classList.remove('on'), 2800);
+// ─── DRAFT ───────────────────────────────
+function collectDraft(){
+  return{
+    cityRaw:document.getElementById('cityRaw').value,
+    cityOut:document.getElementById('cityOut').value,
+    fevSelected, munSelected, secOrder,
+    arts, seln:[...seln],
+    col:document.getElementById('coltxt').value,
+  };
 }
-function showOverlay(msg) { document.getElementById('gentx').innerHTML = msg; document.getElementById('genov').classList.add('on'); }
-function hideOverlay()    { document.getElementById('genov').classList.remove('on'); }
-
-// ══════════════════════════════════════
-// DRAFT (スプレッドシート)
-// ══════════════════════════════════════
-async function svd() {
-  if (!selv) return;
-  try {
-    const draft = {
-      evs,
-      arts,
-      seln: [...seln],
-      col: document.getElementById('coltxt').value,
-    };
-    await gasCall('saveDraft', { vol: selv, draft });
-    draftVols.add(String(selv));
-    buildProg();
-  } catch(e) { /* 保存失敗は無視（操作継続優先） */ }
+async function svd(){
+  if(!selv) return;
+  try{ await gasCall('saveDraft',{vol:selv,draft:collectDraft()}); draftVols.add(String(selv)); buildProg(); }catch(e){}
+}
+async function loadDraft(vol){
+  try{
+    const r=await gasCall('loadDraft',{vol});
+    if(!r.draft) return;
+    const d=r.draft;
+    document.getElementById('cityRaw').value=d.cityRaw||'';
+    document.getElementById('cityOut').value=d.cityOut||'';
+    document.getElementById('cityOutFg').style.display=d.cityOut?'flex':'none';
+    fevSelected=d.fevSelected||[];
+    munSelected=d.munSelected||[null,null];
+    secOrder=d.secOrder||[...SEC_DEFS.map(s=>s.id)];
+    arts=d.arts||[]; seln=new Set(d.seln||[]);
+    if(d.col) document.getElementById('coltxt').value=d.col;
+  }catch(e){}
 }
 
-async function loadDraft(vol) {
-  try {
-    const r = await gasCall('loadDraft', { vol });
-    if (r.draft) {
-      evs  = r.draft.evs  || [];
-      arts = r.draft.arts || [];
-      seln = new Set(r.draft.seln || []);
-      if (r.draft.col) document.getElementById('coltxt').value = r.draft.col;
-    } else {
-      evs = []; arts = []; seln = new Set();
-      document.getElementById('coltxt').value = '';
-    }
-  } catch(e) {
-    evs = []; arts = []; seln = new Set();
-    document.getElementById('coltxt').value = '';
-  }
-}
-
-// ══════════════════════════════════════
-// STEP 1: 番組表
-// ══════════════════════════════════════
-function buildProg() {
-  const g = document.getElementById('pgrid');
-  g.innerHTML = PROG.map(p => `
-    <div class="pc${draftVols.has(String(p.v)) ? ' draft' : ''}" id="pc${p.v}" onclick="selVol(${p.v})">
+// ─── STEP1 ───────────────────────────────
+function buildProg(){
+  document.getElementById('pgrid').innerHTML=PROG.map(p=>`
+    <div class="pc${draftVols.has(String(p.v))?' draft':''}" id="pc${p.v}" onclick="selVol(${p.v})">
       <div class="pv">Vol.${String(p.v).padStart(2,'0')}</div>
       <div class="pd">${p.dt}</div>
       <div class="pp ${PC[p.ph]}">${PH[p.ph]}</div>
@@ -660,282 +428,394 @@ function buildProg() {
       <div class="pc2">📚 ${p.col}</div>
     </div>`).join('');
 }
-
-async function selVol(v) {
-  selv = v;
-  document.querySelectorAll('.pc').forEach(c => c.classList.remove('sel'));
-  document.getElementById('pc' + v).classList.add('sel');
-  const p = PROG.find(x => x.v === v);
-  const hb = document.getElementById('hbadge');
-  hb.textContent = `Vol.${String(v).padStart(2,'0')} / ${p.dt}`;
-  hb.classList.add('set');
-  document.getElementById('btnnext').disabled = false;
-  document.getElementById('navinfo').textContent = `Vol.${v}「${p.main}」選択中`;
-  document.getElementById('coltheme').textContent = p.col;
+async function selVol(v){
+  selv=v;
+  document.querySelectorAll('.pc').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('pc'+v).classList.add('sel');
+  const p=PROG.find(x=>x.v===v);
+  const hb=document.getElementById('hbadge');
+  hb.textContent=`Vol.${String(v).padStart(2,'0')} / ${p.dt}`; hb.classList.add('set');
+  document.getElementById('btnnext').disabled=false;
+  document.getElementById('navinfo').textContent=`Vol.${v}「${p.main}」選択中`;
+  document.getElementById('coltheme').textContent=p.col;
   buildKw(p.kw);
-  showOverlay('下書きを読み込み中...');
+  // リセット
+  fevSelected=[];munSelected=[null,null];arts=[];seln=new Set();
+  secOrder=[...SEC_DEFS.map(s=>s.id)];
+  secNums={};
+  document.getElementById('cityRaw').value='';
+  document.getElementById('cityOut').value='';
+  document.getElementById('cityOutFg').style.display='none';
+  document.getElementById('coltxt').value='';
+  ghtml='';
+  showOv('下書きを読み込み中...');
   await loadDraft(v);
-  hideOverlay();
+  hideOv();
+  renderFevSelected();rendMunCards();rendNews();updAllBadges();
 }
 
-// ══════════════════════════════════════
-// STEP 2-A: イベント
-// ══════════════════════════════════════
-function buildEv() {
-  const l = document.getElementById('evlist');
-  l.innerHTML = evs.map((e, i) => `
-    <div class="ev-card">
-      <div class="ev-head">
-        <span class="ev-num">イベント ${i+1}</span>
-        <button class="btn btn-d btn-sm" onclick="rmev(${i})">✕ 削除</button>
-      </div>
-      <div class="fg"><label class="fl">イベント名<span class="req">*</span></label>
-        <input type="text" value="${esc(e.nm||'')}" oninput="evs[${i}].nm=this.value;svd()" placeholder="ふるのばMeet vol.XX"></div>
-      <div class="fr3">
-        <div class="fg"><label class="fl">開催日時</label>
-          <input type="datetime-local" value="${e.dt||''}" oninput="evs[${i}].dt=this.value;svd()"></div>
-        <div class="fg"><label class="fl">形式</label>
-          <select onchange="evs[${i}].fmt=this.value;svd()">
-            ${['オンライン','オフライン','ハイブリッド'].map(f=>`<option${e.fmt===f?' selected':''}>${f}</option>`).join('')}
-          </select></div>
-        <div class="fg"><label class="fl">参加費</label>
-          <select onchange="evs[${i}].fee=this.value;svd()">
-            ${['無料','有料'].map(f=>`<option${e.fee===f?' selected':''}>${f}</option>`).join('')}
-          </select></div>
-      </div>
-      <div class="fr">
-        <div class="fg"><label class="fl">申込URL</label>
-          <input type="url" value="${esc(e.url||'')}" oninput="evs[${i}].url=this.value;svd()" placeholder="https://..."></div>
-        <div class="fg"><label class="fl">対象者</label>
-          <input type="text" value="${esc(e.tgt||'')}" oninput="evs[${i}].tgt=this.value;svd()" placeholder="企業担当者、自治体職員"></div>
-      </div>
-      <div class="fg"><label class="fl">一言紹介（100字以内）</label>
-        <textarea rows="2" oninput="evs[${i}].note=this.value;svd()">${esc(e.note||'')}</textarea></div>
-    </div>`).join('');
-  document.getElementById('addev').style.display = evs.length >= 3 ? 'none' : 'block';
-  document.getElementById('evb').textContent = evs.length;
+// ─── STEP2-A: 自治体情報 ─────────────────
+async function formatCity(){
+  const raw=document.getElementById('cityRaw').value.trim();
+  if(!raw){toast('原文テキストを入力してください');return;}
+  const btn=document.getElementById('fmtBtn');btn.disabled=true;
+  const st=document.getElementById('citySt');st.className='st load';
+  document.getElementById('cityStx').textContent='整形中...';
+  try{
+    const r=await gasCall('formatCityInfo',{rawText:raw});
+    document.getElementById('cityOut').value=r.formatted;
+    document.getElementById('cityOutFg').style.display='flex';
+    st.className='st ok';document.getElementById('cityStx').textContent='整形完了！編集できます。';
+    updCityBadge();svd();
+  }catch(e){
+    st.className='st err';document.getElementById('cityStx').textContent='エラー: '+e.message;st.style.display='flex';
+  }finally{btn.disabled=false;}
 }
-function addev() { if(evs.length>=3)return; evs.push({nm:'',dt:'',fmt:'オンライン',fee:'無料',url:'',tgt:'',note:''}); buildEv(); svd(); }
-function rmev(i) { evs.splice(i,1); buildEv(); svd(); }
-
-// ══════════════════════════════════════
-// STEP 2-B: ニュース
-// ══════════════════════════════════════
-function buildKw(preset) {
-  akws = new Set(preset || []);
-  const c = document.getElementById('kwchips');
-  c.innerHTML = ALLKW.map(k =>
-    `<div class="kc${akws.has(k)?' on':''}" onclick="tgkw('${k}',this)">${k}</div>`
-  ).join('');
-  if (arts.length) rendNews();
+function clearCity(){
+  document.getElementById('cityRaw').value='';
+  document.getElementById('cityOut').value='';
+  document.getElementById('cityOutFg').style.display='none';
+  document.getElementById('citySt').className='st';
+  updCityBadge();svd();
 }
-function tgkw(k, el) {
-  if(akws.has(k)){akws.delete(k);el.classList.remove('on');}
-  else{akws.add(k);el.classList.add('on');}
+function updCityBadge(){
+  document.getElementById('cityb').textContent=document.getElementById('cityOut').value.trim()?'✓':'0';
 }
 
-async function fetchNews() {
-  const kws = [...akws];
-  const ck = document.getElementById('ckw').value.trim();
-  if(ck) kws.push(ck);
-  if(!kws.length){ toast('キーワードを1つ以上選んでください'); return; }
-  const p = PROG.find(x => x.v === selv);
-  const btn = document.getElementById('fnbtn');
-  btn.disabled = true;
-  const st = document.getElementById('nwst');
-  st.className = 'st load';
-  document.getElementById('nwstx').textContent = `「${kws.slice(0,3).join('・')}」で検索中...`;
-  document.getElementById('ngrid').innerHTML = '';
-  arts = []; seln.clear();
-  try {
-    const r = await gasCall('fetchNews', { keywords: kws, vol: p.v, colTheme: p.col });
-    arts = r.articles || [];
-    seln.clear();
-    st.className = 'st';
-    rendNews();
-    svd();
-  } catch(e) {
-    st.className = 'st err';
-    st.querySelector('span').textContent = 'エラー: ' + e.message;
-    st.style.display = 'flex';
-  } finally {
-    btn.disabled = false;
+// ─── STEP2-B: ふるのばイベント ───────────
+async function loadEvents(){
+  const st=document.getElementById('fevSt');st.className='st load';
+  document.getElementById('fevStx').textContent='イベント一覧を取得中...';
+  try{
+    const r=await gasCall('listEvents');
+    eventsCache=r.events||[];st.className='st';
+    renderFevGrid();
+  }catch(e){
+    st.className='st err';document.getElementById('fevStx').textContent='エラー: '+e.message;st.style.display='flex';
   }
 }
+function renderFevGrid(){
+  const g=document.getElementById('fevGrid');
+  if(!eventsCache.length){g.innerHTML='<div class="fev-empty">スプシ「events」シートにデータがありません</div>';return;}
+  g.innerHTML=eventsCache.map((ev,i)=>`
+    <div class="fev-item${fevSelected.some(s=>s.label===ev.label)?' sel':''}" onclick="toggleFev(${i})">${esc(ev.label)}</div>`).join('');
+}
+function toggleFev(i){
+  const ev=eventsCache[i];
+  const idx=fevSelected.findIndex(s=>s.label===ev.label);
+  if(idx>=0){fevSelected.splice(idx,1);}
+  else{if(fevSelected.length>=3){toast('最大3件まで選択できます');return;}fevSelected.push(ev);}
+  renderFevGrid();renderFevSelected();
+  document.getElementById('fevb').textContent=fevSelected.length||'0';svd();
+}
+function renderFevSelected(){
+  const el=document.getElementById('fevSelectedArea');
+  if(!fevSelected.length){el.innerHTML='';return;}
+  el.innerHTML='<div style="font-size:11px;font-weight:700;color:var(--txm);margin:10px 0 8px;letter-spacing:.06em">選択中のイベント</div>'+
+    fevSelected.map((ev,i)=>`
+      <div class="slot-card">
+        <div class="slot-name">${esc(ev.label)}</div>
+        <div class="slot-desc">形式：${esc(ev.format)}　参加費：${esc(ev.fee)}${ev.target?'　対象：'+esc(ev.target):''}</div>
+        ${ev.note?`<div class="slot-desc">${esc(ev.note)}</div>`:''}
+        ${ev.url?`<div class="slot-url">申込：${esc(ev.url)}</div>`:''}
+        <button class="btn btn-d btn-sm" style="margin-top:8px" onclick="removeFev(${i})">✕ 外す</button>
+      </div>`).join('');
+}
+function removeFev(i){fevSelected.splice(i,1);renderFevGrid();renderFevSelected();document.getElementById('fevb').textContent=fevSelected.length||'0';svd();}
 
-function rendNews() {
-  const g = document.getElementById('ngrid');
-  if (!arts.length) { g.innerHTML = ''; updSel(); return; }
-  g.innerHTML = arts.map((a, i) => {
-    const s = seln.has(i);
-    const st = '★'.repeat(a.score||3) + '☆'.repeat(5-(a.score||3));
-    const tags = (a.tags||[]).map(t=>`<span class="nt nt-k">${esc(t)}</span>`).join('');
-    const nn = a.isNew ? '<span class="nt nt-n">NEW</span>' : '';
-    const rr = (a.score>=4) ? '<span class="nt nt-r">おすすめ</span>' : '';
-    return `<div class="nc${s?' sel':''}" onclick="tgNews(${i})">
-      <div class="ntags">${nn}${rr}${tags}<span class="nstars" style="margin-left:auto">${st}</span></div>
+// ─── STEP2-C: 企業版ふるさと納税 ─────────
+async function loadMunics(){
+  const st=document.getElementById('munSt');st.className='st load';
+  try{
+    const r=await gasCall('listMunicipalities');
+    municsCache=r.municipalities||[];st.className='st';
+    const opts='<option value="">— 選択してください —</option>'+
+      municsCache.map((m,i)=>`<option value="${i}">${esc(m.name)}</option>`).join('');
+    ['mun0','mun1'].forEach(id=>document.getElementById(id).innerHTML=opts);
+    // 保存済み選択復元
+    munSelected.forEach((m,slot)=>{
+      if(m){const i=municsCache.findIndex(x=>x.name===m.name);if(i>=0)document.getElementById('mun'+slot).value=String(i);}
+    });
+    rendMunCards();
+  }catch(e){
+    st.className='st err';st.querySelector('span').textContent='エラー: '+e.message;st.style.display='flex';
+  }
+}
+function selectMunic(slot){
+  const val=document.getElementById('mun'+slot).value;
+  munSelected[slot]=val!==''?municsCache[parseInt(val)]:null;
+  rendMunCards();updMunBadge();svd();
+}
+function rendMunCards(){
+  const el=document.getElementById('munCards');
+  const cards=munSelected.filter(Boolean);
+  if(!cards.length){el.innerHTML='';return;}
+  el.innerHTML=cards.map(m=>`
+    <div class="slot-card">
+      <div class="slot-name">${esc(m.name)}</div>
+      <div class="slot-desc">${esc(m.description)}</div>
+      ${m.url?`<div class="slot-url">詳細：${esc(m.url)}</div>`:''}
+    </div>`).join('');
+}
+function updMunBadge(){document.getElementById('munb').textContent=munSelected.filter(Boolean).length||'0';}
+
+// ─── STEP2-D: ニュース ───────────────────
+function buildKw(preset){
+  akws=new Set(preset||[]);
+  document.getElementById('kwchips').innerHTML=ALLKW.map(k=>
+    `<div class="kc${akws.has(k)?' on':''}" onclick="tgkw('${k}',this)">${k}</div>`).join('');
+  if(arts.length) rendNews();
+}
+function tgkw(k,el){akws.has(k)?(akws.delete(k),el.classList.remove('on')):(akws.add(k),el.classList.add('on'));}
+async function fetchNews(){
+  const kws=[...akws];const ck=document.getElementById('ckw').value.trim();if(ck)kws.push(ck);
+  if(!kws.length){toast('キーワードを1つ以上選んでください');return;}
+  const p=PROG.find(x=>x.v===selv);
+  document.getElementById('fnbtn').disabled=true;
+  const st=document.getElementById('nwst');st.className='st load';
+  document.getElementById('nwstx').textContent=`「${kws.slice(0,3).join('・')}」で検索中...`;
+  document.getElementById('ngrid').innerHTML='';arts=[];seln.clear();
+  try{
+    const r=await gasCall('fetchNews',{keywords:kws,vol:p.v,colTheme:p.col});
+    arts=r.articles||[];seln.clear();st.className='st';rendNews();svd();
+  }catch(e){
+    st.className='st err';st.querySelector('span').textContent='エラー: '+e.message;st.style.display='flex';
+  }finally{document.getElementById('fnbtn').disabled=false;}
+}
+function rendNews(){
+  const g=document.getElementById('ngrid');
+  if(!arts.length){g.innerHTML='';updSel();return;}
+  g.innerHTML=arts.map((a,i)=>{
+    const s=seln.has(i);const st='★'.repeat(a.score||3)+'☆'.repeat(5-(a.score||3));
+    const tags=(a.tags||[]).map(t=>`<span class="nt nt-k">${esc(t)}</span>`).join('');
+    return`<div class="nc${s?' sel':''}" onclick="tgNews(${i})">
+      <div class="ntags">${a.isNew?'<span class="nt nt-n">NEW</span>':''}${a.score>=4?'<span class="nt nt-r">おすすめ</span>':''}${tags}<span class="nstars" style="margin-left:auto">${st}</span></div>
       <div class="ntitle">${esc(a.title||'')}</div>
       <div class="nsum">${esc(a.summary||'')}</div>
-      <div class="nrsn"><b>💡 選定理由：</b>${esc(a.reason||'')}</div>
-      <div class="nft">
-        <span>📰 ${esc(a.source||'')}</span>
-        ${a.url&&a.url!=='null'?`<a href="${esc(a.url)}" target="_blank" rel="noopener" style="font-size:10px;color:var(--g)">記事を開く →</a>`:''}
-      </div>
+      <div class="nrsn">${esc(a.reason||'')}</div>
+      <div class="nft"><span>📰 ${esc(a.source||'')}</span>${a.url&&a.url!=='null'?`<a href="${esc(a.url)}" target="_blank" rel="noopener" style="font-size:10px;color:var(--g)">開く →</a>`:''}</div>
+    </div>`;
+  }).join('');updSel();
+}
+function tgNews(i){seln.has(i)?seln.delete(i):seln.add(i);rendNews();svd();}
+function updSel(){
+  const n=seln.size;document.getElementById('nwb').textContent=n||'0';
+  const sb=document.getElementById('selbar');
+  if(arts.length){sb.style.display='flex';[0,1,2].forEach(j=>{const d=document.getElementById('d'+j);if(d)d.className='dot'+(j<n?' f':'');});document.getElementById('selnum').textContent=n+'件選択中';}
+  else sb.style.display='none';
+}
+
+// ─── STEP2-E: コラム ─────────────────────
+function updcc(){
+  const n=document.getElementById('coltxt').value.length;
+  const el=document.getElementById('colcc');
+  el.textContent=n+' / 800字';el.className='cc'+(n>800?' over':n>650?' warn':'');
+  document.getElementById('colb').textContent=n>100?'✓':'0';
+}
+async function genCol(){
+  const p=PROG.find(x=>x.v===selv);if(!p)return;
+  const btn=document.getElementById('gcolbtn');btn.disabled=true;
+  const st=document.getElementById('colst');st.className='st load';
+  try{
+    const r=await gasCall('genColumn',{vol:p.v,colTheme:p.col});
+    document.getElementById('coltxt').value=r.column;updcc();
+    st.className='st';document.getElementById('colb').textContent='✓';svd();
+  }catch(e){
+    st.className='st err';st.querySelector('span').textContent='エラー: '+e.message;st.style.display='flex';
+  }finally{btn.disabled=false;}
+}
+
+function updAllBadges(){updCityBadge();document.getElementById('fevb').textContent=fevSelected.length||'0';updMunBadge();updSel();updcc();}
+
+// ─── STEP3: セクション順（数字入力方式）──────
+// secNums: {id -> 入力された数字 or null}
+function getSectionHasContent(id){
+  switch(id){
+    case 'city': return !!document.getElementById('cityOut').value.trim();
+    case 'fev':  return fevSelected.length>0;
+    case 'mun':  return munSelected.filter(Boolean).length>0;
+    case 'nw':   return seln.size>0;
+    case 'col':  return document.getElementById('coltxt').value.trim().length>100;
+  }
+  return false;
+}
+
+function buildSecList(){
+  // 初期値: secOrderに基づいて番号をセット（未設定なら既存secOrderから）
+  if(Object.keys(secNums).length===0) resetSecNums();
+  const list=document.getElementById('secList');
+  list.innerHTML=SEC_DEFS.map(def=>{
+    const has=getSectionHasContent(def.id);
+    const val=secNums[def.id]!==undefined?secNums[def.id]:'';
+    return`<div class="sec-item${has?'':' no-content'}" data-id="${def.id}">
+      <input class="sec-num-input" type="number" min="1" max="5" value="${val}"
+        placeholder="—" data-id="${def.id}" oninput="onSecNumInput(this)">
+      <span class="sec-icon">${def.icon}</span>
+      <span class="sec-label">${def.label}</span>
+      <span class="sec-status ${has?'has':'none'}">${has?'入力あり':'未入力'}</span>
     </div>`;
   }).join('');
-  updSel();
+  validateSecNums();
 }
 
-function tgNews(i) {
-  if(seln.has(i)) seln.delete(i); else seln.add(i);
-  rendNews(); svd();
-}
-function updSel() {
-  const n = seln.size;
-  document.getElementById('nwb').textContent = n;
-  const sb = document.getElementById('selbar');
-  if(arts.length) {
-    sb.style.display = 'flex';
-    [0,1,2].forEach(j => { const d=document.getElementById('d'+j); if(d) d.className='dot'+(j<n?' f':''); });
-    document.getElementById('selnum').textContent = n + '件選択中';
-  } else {
-    sb.style.display = 'none';
-  }
+function onSecNumInput(el){
+  const id=el.dataset.id;
+  const v=el.value.trim();
+  secNums[id]=v===''?null:parseInt(v);
+  validateSecNums();
 }
 
-// ══════════════════════════════════════
-// STEP 2-C: コラム
-// ══════════════════════════════════════
-function updcc() {
-  const n = document.getElementById('coltxt').value.length;
-  const el = document.getElementById('colcc');
-  el.textContent = n + ' / 800字';
-  el.className = 'cc' + (n>800?' over':n>650?' warn':'');
-  document.getElementById('colb').textContent = n>100 ? '✓' : '0';
+function validateSecNums(){
+  const nums=Object.values(secNums).filter(v=>v!==null);
+  const hasDup=nums.length!==new Set(nums).size;
+  document.getElementById('secDupWarn').style.display=hasDup?'block':'none';
+  document.querySelectorAll('.sec-num-input').forEach(el=>{
+    const v=secNums[el.dataset.id];
+    if(v===null){el.classList.remove('dup');return;}
+    const isDup=nums.filter(n=>n===v).length>1;
+    el.classList.toggle('dup',isDup);
+  });
+  return !hasDup;
 }
 
-async function genCol(regen = false) {
-  const p = PROG.find(x => x.v === selv);
-  if(!p) return;
-  const btn = document.getElementById('gcolbtn');
-  btn.disabled = true;
-  const st = document.getElementById('colst');
-  st.className = 'st load';
-  try {
-    const r = await gasCall('genColumn', { vol: p.v, colTheme: p.col });
-    document.getElementById('coltxt').value = r.column;
-    updcc();
-    st.className = 'st';
-    document.getElementById('colb').textContent = '✓';
-    svd();
-  } catch(e) {
-    st.className = 'st err';
-    st.querySelector('span').textContent = 'エラー: ' + e.message;
-    st.style.display = 'flex';
-  } finally {
-    btn.disabled = false;
-  }
+function resetSecNums(){
+  secNums={};
+  SEC_DEFS.forEach((def,i)=>{secNums[def.id]=i+1;});
 }
 
-// ══════════════════════════════════════
-// STEP 3: HTML生成
-// ══════════════════════════════════════
-async function genHtml() {
-  const p = PROG.find(x => x.v === selv);
-  showOverlay('HTMLメールを生成中...<br>少しお待ちください');
-  try {
-    const selectedNews = [...seln].map(i => arts[i]);
-    const r = await gasCall('genHtml', {
-      vol: p.v, date: p.dt, mainTitle: p.main, colTheme: p.col,
-      events: evs,
-      selectedNews,
-      column: document.getElementById('coltxt').value,
+function resetSecOrder(){
+  resetSecNums();
+  secOrder=[...SEC_DEFS.map(s=>s.id)];
+  buildSecList();
+  document.getElementById('secSummary').innerHTML=
+    '<div style="font-size:12px;color:var(--txm)">「この順番で確定」を押すと表示順が確定します</div>';
+}
+
+function applySecOrder(){
+  if(!validateSecNums()){toast('番号の重複を解消してください');return;}
+  // 数字でソート（nullは末尾）
+  const entries=SEC_DEFS.map(def=>({id:def.id,num:secNums[def.id]}));
+  entries.sort((a,b)=>{
+    if(a.num===null&&b.num===null) return 0;
+    if(a.num===null) return 1;
+    if(b.num===null) return -1;
+    return a.num-b.num;
+  });
+  secOrder=entries.map(e=>e.id);
+  buildSecSummary();svd();
+  toast('✓ セクション順を確定しました');
+}
+
+function buildSecSummary(){
+  const el=document.getElementById('secSummary');
+  const displayed=secOrder.filter(id=>getSectionHasContent(id));
+  const skipped=secOrder.filter(id=>!getSectionHasContent(id));
+  let html='';
+  if(displayed.length){
+    displayed.forEach((id,i)=>{
+      const def=SEC_DEFS.find(s=>s.id===id);
+      html+=`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd);font-size:13px">
+        <span style="width:22px;height:22px;background:var(--g);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span>
+        <span>${def.icon}</span>
+        <span style="flex:1">${def.label}</span>
+        <span style="font-size:10px;font-weight:700;color:var(--g)">✓ 表示</span>
+      </div>`;
     });
-    ghtml = r.html;
-    gsubj = `【公民共創コミュニティふるのば】メールマガジンvol.${String(p.v).padStart(2,'0')}`;
-    document.getElementById('subjin').value  = gsubj;
-    document.getElementById('subjprev').textContent = gsubj;
-    document.getElementById('pframe').srcdoc = ghtml;
-    hideOverlay();
-  } catch(e) {
-    hideOverlay();
-    toast('HTML生成エラー: ' + e.message);
   }
+  if(skipped.length){
+    html+='<div style="font-size:11px;color:var(--txm);margin-top:8px">スキップ（未入力）：'+
+      skipped.map(id=>SEC_DEFS.find(s=>s.id===id).label).join('、')+'</div>';
+  }
+  el.innerHTML=html||'<div style="font-size:12px;color:var(--txm)">表示されるセクションがありません</div>';
 }
 
-function setpm(m, btn) {
-  document.querySelectorAll('.pmode').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById('pframe').className = 'pframe' + (m==='mb' ? ' mob' : '');
+// ─── STEP4: HTML生成 ─────────────────────
+async function genHtml(){
+  const p=PROG.find(x=>x.v===selv);
+  showOv('HTMLメールを生成中...<br>少しお待ちください');
+  try{
+    const col=document.getElementById('coltxt').value;
+    const payload={
+      vol:p.v, date:p.dt, colTheme:p.col, secOrder,
+      cityInfo:document.getElementById('cityOut').value,
+      furunobaEvents:fevSelected,
+      munics:munSelected.filter(Boolean),
+      selectedNews:[...seln].map(i=>arts[i]),
+      column:col,
+    };
+    if(JSON.stringify({action:'genHtml',...payload}).length>5000){
+      showOv('コンテンツを保存中...');
+      await gasCall('saveDraft',{vol:p.v,draft:collectDraft()});
+      showOv('HTMLメールを生成中...<br>少しお待ちください');
+      payload.column=col.slice(0,800)+'...';
+      payload.useStoredColumn=true;payload.storedVol=p.v;
+    }
+    const r=await gasCall('genHtml',payload);
+    ghtml=r.html;
+    gsubj=`【公民共創コミュニティふるのば】メールマガジンvol.${String(p.v).padStart(2,'0')}`;
+    document.getElementById('subjin').value=gsubj;
+    document.getElementById('subjprev').textContent=gsubj;
+    document.getElementById('pframe').srcdoc=ghtml;
+    hideOv();
+  }catch(e){hideOv();toast('HTML生成エラー: '+e.message);}
+}
+function setpm(m,btn){
+  document.querySelectorAll('.pmode').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+  document.getElementById('pframe').className='pframe'+(m==='mb'?' mob':'');
 }
 
-// ══════════════════════════════════════
-// STEP 4: 出力
-// ══════════════════════════════════════
-function copHub() {
-  if(!ghtml){ toast('先にHTMLを生成してください'); return; }
-  navigator.clipboard.writeText(ghtml).then(() => {
-    document.getElementById('oca').classList.add('done');
-    toast('✓ HubSpot用HTMLをコピーしました');
-  });
+// ─── STEP5: 出力 ─────────────────────────
+function copHub(){
+  if(!ghtml){toast('先にHTMLを生成してください');return;}
+  navigator.clipboard.writeText(ghtml).then(()=>{document.getElementById('oca').classList.add('done');toast('✓ HubSpot用HTMLをコピーしました');});
 }
-function copTxt() {
-  if(!ghtml){ toast('先にHTMLを生成してください'); return; }
-  const d = document.createElement('div');
-  d.innerHTML = ghtml;
-  const t = (d.textContent||d.innerText||'').replace(/\n{3,}/g,'\n\n').trim();
-  navigator.clipboard.writeText(t).then(() => {
-    document.getElementById('ocb').classList.add('done');
-    toast('✓ テキスト版をコピーしました');
-  });
+function copTxt(){
+  if(!ghtml){toast('先にHTMLを生成してください');return;}
+  const d=document.createElement('div');d.innerHTML=ghtml;
+  navigator.clipboard.writeText((d.textContent||d.innerText||'').replace(/\n{3,}/g,'\n\n').trim())
+    .then(()=>{document.getElementById('ocb').classList.add('done');toast('✓ テキスト版をコピーしました');});
 }
 
-// ══════════════════════════════════════
-// NAVIGATION
-// ══════════════════════════════════════
-function gostep(n) { if(n===1||(n>1&&selv)) setstep(n); }
-function navnext()  { if(step<4) setstep(step+1); }
-function navback()  { if(step>1) setstep(step-1); }
-
-function setstep(n) {
-  step = n;
-  document.querySelectorAll('.scr').forEach((s,i) => s.classList.toggle('on', i+1===n));
-  document.querySelectorAll('.stp').forEach((s,i) => {
+// ─── NAVIGATION ──────────────────────────
+const STEP_MAX=5;
+function gostep(n){if(n===1||(n>1&&selv))setstep(n);}
+function navnext(){if(step<STEP_MAX)setstep(step+1);}
+function navback(){if(step>1)setstep(step-1);}
+function setstep(n){
+  step=n;
+  document.querySelectorAll('.scr').forEach((s,i)=>s.classList.toggle('on',i+1===n));
+  document.querySelectorAll('.stp').forEach((s,i)=>{
     s.classList.remove('active','done');
-    if(i+1===n) s.classList.add('active');
-    else if(i+1<n) s.classList.add('done');
+    if(i+1===n)s.classList.add('active');else if(i+1<n)s.classList.add('done');
   });
-  const bb = document.getElementById('btnback');
-  const nb = document.getElementById('btnnext');
-  bb.style.display = n>1 ? 'inline-flex' : 'none';
-  nb.style.display  = 'inline-flex';
-  if(n===1) {
-    nb.textContent = '次へ →'; nb.disabled = !selv;
-    document.getElementById('navinfo').textContent = selv ? `Vol.${selv} 選択中` : '号数を選択してください';
-  } else if(n===2) {
-    buildEv(); rendNews(); updSel(); updcc();
-    nb.textContent = 'プレビューへ →'; nb.disabled = false;
-    document.getElementById('navinfo').textContent = 'コンテンツを入力してください';
-  } else if(n===3) {
-    nb.textContent = '出力へ →'; nb.disabled = false;
-    document.getElementById('navinfo').textContent = 'HTMLを確認してください';
-    if(!ghtml) genHtml();
-  } else {
-    nb.style.display = 'none';
-    document.getElementById('navinfo').textContent = '出力方法を選んでください';
-  }
-  window.scrollTo({top:0, behavior:'smooth'});
+  const bb=document.getElementById('btnback'),nb=document.getElementById('btnnext');
+  bb.style.display=n>1?'inline-flex':'none';nb.style.display='inline-flex';
+  const msgs=['号数を選択してください','コンテンツを入力してください','セクション順を確認してください','HTMLを確認してください','出力方法を選んでください'];
+  const labels=['次へ →','セクション順へ →','プレビューへ →','出力へ →',''];
+  document.getElementById('navinfo').textContent=msgs[n-1];
+  if(n===STEP_MAX){nb.style.display='none';}
+  else{nb.textContent=labels[n-1];nb.disabled=(n===1&&!selv);}
+  if(n===1)nb.disabled=!selv;
+  if(n===3){if(Object.keys(secNums).length===0)resetSecNums();buildSecList();}
+  if(n===4&&!ghtml)genHtml();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function swtab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');document.getElementById('tc-'+name).classList.add('on');
 }
 
-function swtab(name, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-  document.querySelectorAll('.tc').forEach(c  => c.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('tc-'+name).classList.add('on');
-}
-
-// INIT
-buildProg();
+// ─── INIT ────────────────────────────────
+window.addEventListener('DOMContentLoaded',async()=>{
+  if(!GAS_URL||GAS_URL==='YOUR_GAS_WEBAPP_URL_HERE')
+    document.getElementById('setupBanner').classList.add('show');
+  buildProg();
+  try{
+    const r=await gasCall('listDrafts');
+    draftVols=new Set((r.drafts||[]).map(d=>String(d.vol)));buildProg();
+  }catch(e){}
+});
 </script>
 </body>
 </html>
