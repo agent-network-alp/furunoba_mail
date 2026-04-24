@@ -158,7 +158,7 @@ textarea{resize:vertical;line-height:1.65}
 <script>
 const GAS_URL = 'YOUR_GAS_WEBAPP_URL_HERE';
 // ▼ Google Cloud ConsoleのOAuthクライアントID（.apps.googleusercontent.com で終わる文字列）
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID_HERE';
+const GOOGLE_CLIENT_ID = '293215192019-gr5nc5fb3tghj6j0cbv1730kf288p1uk.apps.googleusercontent.comUR';
 </script>
 
 <header class="app-hd">
@@ -384,14 +384,36 @@ let secOrder=[...SEC_DEFS.map(s=>s.id)]; // 表示順
 let secNums={}; // {id->番号}
 
 // ─── GAS CALL ────────────────────────────
-async function gasCall(action,extra={}){
+// GAS GETのURL長制限 ~8KB を考慮し、
+// 書き込み系（saveDraft）は no-cors POST、
+// 読み取り系はGETで通信する。
+// no-cors POSTはレスポンスが読めないため書き込み専用。
+
+const WRITE_ACTIONS = new Set(['saveDraft']);
+
+async function gasCall(action, extra={}){
   if(!GAS_URL||GAS_URL==='https://script.google.com/macros/s/AKfycbxOK7vwIdBUbIjZLJzexE9PZGIlj9yPF0LAcv89VdhcaDQzlxv2m-rcR_2AEk3ZiWJM9g/exec') throw new Error('GAS_URLが未設定です');
-  const idToken=await getIdToken();
-  const p=encodeURIComponent(JSON.stringify({action,idToken,...extra}));
-  const res=await fetch(GAS_URL+'?payload='+p,{redirect:'follow'});
+  const idToken = await getIdToken();
+  const body = {action, idToken, ...extra};
+
+  if(WRITE_ACTIONS.has(action)){
+    // POST (no-cors) — レスポンス不要の書き込み専用
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'text/plain'},
+      body: JSON.stringify(body),
+    });
+    return {ok: true};
+  }
+
+  // GET — レスポンスを読む必要がある処理
+  const p = encodeURIComponent(JSON.stringify(body));
+  const res = await fetch(GAS_URL+'?payload='+p, {redirect:'follow'});
   if(!res.ok) throw new Error('GAS通信エラー: '+res.status);
-  const txt=await res.text();
-  let d; try{d=JSON.parse(txt);}catch(e){throw new Error('レスポンス解析エラー');}
+  const txt = await res.text();
+  let d;
+  try{ d=JSON.parse(txt); }catch(e){ throw new Error('レスポンス解析エラー: '+txt.slice(0,100)); }
   if(d.error) throw new Error(d.error);
   return d;
 }
@@ -750,21 +772,31 @@ async function genHtml(){
   showOv('HTMLメールを生成中...<br>少しお待ちください');
   try{
     const col=document.getElementById('coltxt').value;
+
+    // 1. まず常にsaveDraft（no-cors POST）でコンテンツを保存
+    showOv('コンテンツを保存中...');
+    await gasCall('saveDraft',{vol:p.v,draft:collectDraft()});
+    showOv('HTMLメールを生成中...<br>少しお待ちください');
+
+    // 2. genHtmlはスプシ参照方式でGETペイロードを小さく保つ
+    //    ニュース記事の本文は除外し、タイトル+URLのみ送る
+    const newsMin=[...seln].map(i=>({
+      title:arts[i].title,
+      summary:arts[i].summary,
+      url:arts[i].url,
+      source:arts[i].source,
+    }));
+
     const payload={
       vol:p.v, date:p.dt, colTheme:p.col, secOrder,
       cityInfo:document.getElementById('cityOut').value,
       furunobaEvents:fevSelected,
       munics:munSelected.filter(Boolean),
-      selectedNews:[...seln].map(i=>arts[i]),
-      column:col,
+      selectedNews:newsMin,
+      useStoredColumn:true,  // コラムはスプシから取得
+      storedVol:p.v,
     };
-    if(JSON.stringify({action:'genHtml',...payload}).length>5000){
-      showOv('コンテンツを保存中...');
-      await gasCall('saveDraft',{vol:p.v,draft:collectDraft()});
-      showOv('HTMLメールを生成中...<br>少しお待ちください');
-      payload.column=col.slice(0,800)+'...';
-      payload.useStoredColumn=true;payload.storedVol=p.v;
-    }
+
     const r=await gasCall('genHtml',payload);
     ghtml=r.html;
     gsubj=`【公民共創コミュニティふるのば】メールマガジンvol.${String(p.v).padStart(2,'0')}`;
@@ -883,7 +915,7 @@ async function initApp() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  if(!GAS_URL||GAS_URL==='YOUR_GAS_WEBAPP_URL_HERE'||!GOOGLE_CLIENT_ID||GOOGLE_CLIENT_ID==='293215192019-gr5nc5fb3tghj6j0cbv1730kf288p1uk.apps.googleusercontent.com') {
+  if(!GAS_URL||GAS_URL==='YOUR_GAS_WEBAPP_URL_HERE'||!GOOGLE_CLIENT_ID||GOOGLE_CLIENT_ID==='YOUR_GOOGLE_CLIENT_ID_HERE') {
     document.getElementById('setupBanner').classList.add('show');
     buildProg();
     return;
