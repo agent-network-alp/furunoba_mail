@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ふるのば メルマガ作成システム</title>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
-<script src="https://accounts.google.com/gsi/client" async></script>
 <style>
 :root{--g:#1A6B3C;--gd:#114827;--gl:#EAF5EE;--ac:#D4901A;--al:#FDF3E0;
   --tx:#1A2530;--txm:#6B7A8D;--bd:#D5E8DC;--bg:#F3F8F5;--sur:#fff;--sur2:#F7FAF8;--r:10px;--sh:0 2px 16px rgba(26,107,60,.08)}
@@ -122,6 +121,23 @@ textarea{resize:vertical;line-height:1.65}
 /* COLUMN */
 .col-meta{display:flex;align-items:center;gap:10px;padding:9px 13px;background:var(--gl);border-radius:8px;margin-bottom:12px}
 .cm-lbl{font-size:10px;font-weight:700;color:var(--txm)}.cm-val{font-size:13px;font-weight:700;color:var(--g)}
+/* TEXT REVIEW */
+.review-block{background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:14px;overflow:hidden;box-shadow:var(--sh)}
+.review-block-head{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--gl);border-bottom:1px solid var(--bd);cursor:pointer;user-select:none}
+.review-block-head:hover{background:#d8eedd}
+.review-icon{font-size:15px;flex-shrink:0}
+.review-title{font-size:13px;font-weight:700;color:var(--g);flex:1}
+.review-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px}
+.review-badge.filled{background:var(--g);color:#fff}
+.review-badge.empty{background:var(--bd);color:var(--txm)}
+.review-chevron{font-size:11px;color:var(--txm);transition:transform .2s}
+.review-block.open .review-chevron{transform:rotate(180deg)}
+.review-body{display:none;padding:14px 16px}
+.review-block.open .review-body{display:block}
+.review-textarea{width:100%;border:1px solid var(--bd);border-radius:8px;padding:10px 13px;font-size:13px;font-family:inherit;color:var(--tx);background:var(--sur);resize:vertical;line-height:1.7;outline:none;min-height:80px;transition:border-color .2s,box-shadow .2s}
+.review-textarea:focus{border-color:var(--g);box-shadow:0 0 0 3px rgba(26,107,60,.1)}
+.review-empty{font-size:12px;color:var(--txm);padding:8px 0;font-style:italic}
+.review-hint{font-size:11px;color:var(--txm);margin-top:6px;line-height:1.5}
 /* PREVIEW */
 .prev-tb{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sur);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:12px}
 .pmode{padding:5px 13px;border-radius:7px;border:1px solid var(--bd);background:transparent;font-size:12px;font-family:inherit;cursor:pointer;color:var(--txm);transition:all .2s}
@@ -155,12 +171,6 @@ textarea{resize:vertical;line-height:1.65}
 </head>
 <body>
 
-<script>
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxOK7vwIdBUbIjZLJzexE9PZGIlj9yPF0LAcv89VdhcaDQzlxv2m-rcR_2AEk3ZiWJM9g/exec';
-// ▼ Google Cloud ConsoleのOAuthクライアントID（.apps.googleusercontent.com で終わる文字列）
-const GOOGLE_CLIENT_ID = '293215192019-gr5nc5fb3tghj6j0cbv1730kf288p1uk.apps.googleusercontent.com';
-</script>
-
 <header class="app-hd">
   <div><div class="hd-logo">ふるのば<span>MAILMAG SYSTEM v2</span></div></div>
   <div class="vol-pill" id="hbadge">号数未選択</div>
@@ -169,13 +179,14 @@ const GOOGLE_CLIENT_ID = '293215192019-gr5nc5fb3tghj6j0cbv1730kf288p1uk.apps.goo
 <div class="stepper">
   <div class="stp active" onclick="gostep(1)">号数選択<small>番組表</small></div>
   <div class="stp" onclick="gostep(2)">コンテンツ<small>5ブロック</small></div>
-  <div class="stp" onclick="gostep(3)">順番・確認<small>ドラッグ整列</small></div>
-  <div class="stp" onclick="gostep(4)">プレビュー<small>HTML確認</small></div>
-  <div class="stp" onclick="gostep(5)">出力<small>HubSpot</small></div>
+  <div class="stp" onclick="gostep(3)">順番<small>セクション整列</small></div>
+  <div class="stp" onclick="gostep(4)">テキスト確認<small>編集・修正</small></div>
+  <div class="stp" onclick="gostep(5)">プレビュー<small>HTML確認</small></div>
+  <div class="stp" onclick="gostep(6)">出力<small>HubSpot</small></div>
 </div>
 
 <div class="main">
-  <div class="setup-banner" id="setupBanner">⚠️ <strong>初期設定が必要です：</strong> GAS_URL と GOOGLE_CLIENT_ID を index.html に設定してください。</div>
+  <div class="setup-banner" id="setupBanner">⚠️ GASのスクリプトプロパティに ANTHROPIC_API_KEY を設定してください。</div>
 
   <!-- STEP1: 番組表 -->
   <div class="scr on" id="s1">
@@ -295,8 +306,22 @@ const GOOGLE_CLIENT_ID = '293215192019-gr5nc5fb3tghj6j0cbv1730kf288p1uk.apps.goo
     </div>
   </div>
 
-  <!-- STEP4: プレビュー -->
+  <!-- STEP4: テキスト確認・編集 -->
   <div class="scr" id="s4">
+    <div style="font-size:12px;color:var(--txm);margin-bottom:16px;padding:10px 14px;background:var(--sur);border:1px solid var(--bd);border-radius:var(--r)">
+      各セクションの内容をテキストで確認・編集できます。修正後に「HTMLを生成する」に進んでください。セクションヘッダーをクリックして展開します。
+    </div>
+    <div id="reviewBlocks"></div>
+    <div style="margin-top:4px">
+      <button class="btn btn-p" onclick="gostep(5)" style="width:100%;justify-content:center;padding:13px">
+        ✓ 内容を確認しました　→　HTMLを生成する
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP5: プレビュー -->
+  <div class="scr" id="s5">  <!-- STEP5: プレビュー -->
+  <div class="scr" id="s5">
     <div class="subj-row"><span class="subj-lbl">件名</span><input class="subj-in" id="subjin" type="text" placeholder="件名を入力..."></div>
     <div class="prev-tb">
       <button class="pmode on" onclick="setpm('dt',this)">🖥 デスクトップ</button>
@@ -306,8 +331,8 @@ const GOOGLE_CLIENT_ID = '293215192019-gr5nc5fb3tghj6j0cbv1730kf288p1uk.apps.goo
     <div class="prev-wrap"><iframe id="pframe" class="pframe" height="700" sandbox="allow-same-origin allow-popups"></iframe></div>
   </div>
 
-  <!-- STEP5: 出力 -->
-  <div class="scr" id="s5">
+  <!-- STEP6: 出力 -->
+  <div class="scr" id="s6">
     <div class="out-grid">
       <div class="oc" id="oca" onclick="copHub()"><div class="oi">📋</div><div class="ott">HubSpot用HTMLをコピー</div><div class="otd">メールエディタの「ソースコード」欄に貼り付け</div></div>
       <div class="oc" id="ocb" onclick="copTxt()"><div class="oi">📄</div><div class="ott">テキスト版をコピー</div><div class="otd">プレーンテキストをコピーします</div></div>
@@ -327,17 +352,6 @@ const GOOGLE_CLIENT_ID = '293215192019-gr5nc5fb3tghj6j0cbv1730kf288p1uk.apps.goo
   <button class="btn btn-g" id="btnback" onclick="navback()" style="display:none">← 戻る</button>
   <div class="nav-info" id="navinfo">号数を選択してください</div>
   <button class="btn btn-p" style="padding:12px 28px;font-size:14px;border-radius:10px" id="btnnext" onclick="navnext()" disabled>次へ →</button>
-</div>
-<!-- ログインオーバーレイ -->
-<div id="loginOverlay" style="display:none;position:fixed;inset:0;background:var(--gd);z-index:600;align-items:center;justify-content:center;flex-direction:column;gap:20px">
-  <div style="font-family:'Shippori Mincho',serif;font-size:28px;color:#fff;letter-spacing:.08em">ふるのば</div>
-  <div style="font-size:12px;color:rgba(255,255,255,.6);letter-spacing:.14em;margin-top:-12px">MAILMAG SYSTEM</div>
-  <div style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:28px 32px;text-align:center;margin-top:8px">
-    <div style="font-size:14px;color:#fff;margin-bottom:20px;line-height:1.7">アクセスには<br>Googleアカウントでのログインが必要です</div>
-    <div id="googleSignInBtn"></div>
-    <div id="loginError" style="display:none;margin-top:14px;font-size:12px;color:#f97979;background:rgba(255,100,100,.1);padding:8px 14px;border-radius:6px"></div>
-  </div>
-  <div style="font-size:11px;color:rgba(255,255,255,.35)">許可されたGoogleアカウントのみアクセスできます</div>
 </div>
 
 <div class="gen-ov" id="genov"><div class="gen-sp"></div><div class="gen-tx" id="gentx">処理中...</div></div>
@@ -361,6 +375,12 @@ const PROG=[
   {v:13,dt:'7/22(火)',ph:3,main:'3ヶ月振り返り特集',     col:'公民共創の成功要因・失敗要因',    kw:['公民共創','公民連携','地方創生']},
 ];
 const PH={1:'Phase 1 基礎理解',2:'Phase 2 実践知',3:'Phase 3 深化'};
+// Phaseごとのデフォルトキーワード（programmeシートにkw列がない場合に使用）
+const KW_DEFAULTS={
+  1:['公民共創','公民連携','地方創生'],
+  2:['公民連携','企業版ふるさと納税','自治体DX'],
+  3:['地方創生','関係人口','官民連携'],
+};
 const PC={1:'p1',2:'p2',3:'p3'};
 const ALLKW=['公民共創','公民連携','地方創生','企業版ふるさと納税','自治体DX','関係人口','リバースピッチ','官民連携'];
 
@@ -383,43 +403,25 @@ let municsCache=[], munSelected=[null,null];
 let secOrder=[...SEC_DEFS.map(s=>s.id)]; // 表示順
 let secNums={}; // {id->番号}
 
-// ─── GAS CALL ────────────────────────────
-// GAS GETのURL長制限 ~8KB を考慮し、
-// 書き込み系（saveDraft）は no-cors POST、
-// 読み取り系はGETで通信する。
-// no-cors POSTはレスポンスが読めないため書き込み専用。
+// ─── GAS CALL（google.script.run 同一オリジン通信）────
+// GASがHTMLを配信しているため、CORSは発生しない。
+// google.script.run でGAS関数を直接呼び出す。
 
-const WRITE_ACTIONS = new Set(['saveDraft']);
-
-async function gasCall(action, extra={}){
-  if(!GAS_URL||GAS_URL==='YOUR_GAS_WEBAPP_URL_HERE') throw new Error('GAS_URLが未設定です');
-  const idToken = await getIdToken();
-  const body = {action, idToken, ...extra};
-
-  if(WRITE_ACTIONS.has(action)){
-    // POST (no-cors) — レスポンス不要の書き込み専用
-    await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'text/plain'},
-      body: JSON.stringify(body),
-    });
-    return {ok: true};
-  }
-
-  // GET — レスポンスを読む必要がある処理
-  const p = encodeURIComponent(JSON.stringify(body));
-  const res = await fetch(GAS_URL+'?payload='+p, {redirect:'follow'});
-  if(!res.ok) throw new Error('GAS通信エラー: '+res.status);
-  const txt = await res.text();
-  let d;
-  try{ d=JSON.parse(txt); }catch(e){ throw new Error('レスポンス解析エラー: '+txt.slice(0,100)); }
-  if(d.error) throw new Error(d.error);
-  return d;
+function gasCall(action, extra={}) {
+  return new Promise((resolve, reject) => {
+    const body = {action, ...extra};
+    google.script.run
+      .withSuccessHandler(result => {
+        if(result && result.error) reject(new Error(result.error));
+        else resolve(result);
+      })
+      .withFailureHandler(err => reject(new Error(err.message || String(err))))
+      .handleRequest(body);
+  });
 }
 
 // ─── UTILS ───────────────────────────────
-const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\x22/g,'&quot;');
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2800)}
 function showOv(m){document.getElementById('gentx').innerHTML=m;document.getElementById('genov').classList.add('on')}
 function hideOv(){document.getElementById('genov').classList.remove('on')}
@@ -456,14 +458,31 @@ async function loadDraft(vol){
 
 // ─── STEP1 ───────────────────────────────
 function buildProg(){
-  document.getElementById('pgrid').innerHTML=PROG.map(p=>`
-    <div class="pc${draftVols.has(String(p.v))?' draft':''}" id="pc${p.v}" onclick="selVol(${p.v})">
-      <div class="pv">Vol.${String(p.v).padStart(2,'0')}</div>
-      <div class="pd">${p.dt}</div>
-      <div class="pp ${PC[p.ph]}">${PH[p.ph]}</div>
-      <div class="pt">${p.main}</div>
-      <div class="pc2">📚 ${p.col}</div>
-    </div>`).join('');
+  const grid = document.getElementById('pgrid');
+  if(!PROG.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--txm);font-size:13px">番組表を読み込み中...</div>';
+    return;
+  }
+  grid.innerHTML=PROG.map(function(p){
+    const isDraft = draftVols.has(String(p.v));
+    const themeShort = p.col.length > 15;
+    const themeHtml = themeShort
+      ? '<div class="pc2-theme collapsed" title="'+p.col+'" onclick="toggleTheme(this,event)">📚 '+p.col+'<span class="toggle">▼</span></div>'
+      : '<div class="pc2">📚 '+p.col+'</div>';
+    return '<div class="pc'+(isDraft?' draft':'')+' id="pc'+p.v+'" onclick="selVol('+p.v+')">'+
+      '<div class="pv">Vol.'+String(p.v).padStart(2,'0')+'</div>'+
+      '<div class="pd">'+p.dt+'</div>'+
+      '<div class="pp '+PC[p.ph]+'">'+PH[p.ph]+'</div>'+
+      '<div class="pt">'+p.main+'</div>'+
+      themeHtml+
+    '</div>';
+  }).join('');
+}
+
+function toggleTheme(el, e){
+  e.stopPropagation();
+  el.classList.toggle('collapsed');
+  el.querySelector('.toggle').textContent = el.classList.contains('collapsed') ? '▼' : '▲';
 }
 async function selVol(v){
   selv=v;
@@ -471,11 +490,11 @@ async function selVol(v){
   document.getElementById('pc'+v).classList.add('sel');
   const p=PROG.find(x=>x.v===v);
   const hb=document.getElementById('hbadge');
-  hb.textContent=`Vol.${String(v).padStart(2,'0')} / ${p.dt}`; hb.classList.add('set');
+  hb.textContent='Vol.'+(String(v).padStart(2,'0'))+' / '+(p.dt); hb.classList.add('set');
   document.getElementById('btnnext').disabled=false;
-  document.getElementById('navinfo').textContent=`Vol.${v}「${p.main}」選択中`;
+  document.getElementById('navinfo').textContent='Vol.'+(v)+'「'+(p.main)+'」選択中';
   document.getElementById('coltheme').textContent=p.col;
-  buildKw(p.kw);
+  buildKw(p.kw || KW_DEFAULTS[p.ph] || ['公民共創','公民連携','地方創生']);
   // リセット
   fevSelected=[];munSelected=[null,null];arts=[];seln=new Set();
   secOrder=[...SEC_DEFS.map(s=>s.id)];
@@ -485,6 +504,7 @@ async function selVol(v){
   document.getElementById('cityOutFg').style.display='none';
   document.getElementById('coltxt').value='';
   ghtml='';
+  reviewData={};
   showOv('下書きを読み込み中...');
   await loadDraft(v);
   hideOv();
@@ -534,8 +554,7 @@ async function loadEvents(){
 function renderFevGrid(){
   const g=document.getElementById('fevGrid');
   if(!eventsCache.length){g.innerHTML='<div class="fev-empty">スプシ「events」シートにデータがありません</div>';return;}
-  g.innerHTML=eventsCache.map((ev,i)=>`
-    <div class="fev-item${fevSelected.some(s=>s.label===ev.label)?' sel':''}" onclick="toggleFev(${i})">${esc(ev.label)}</div>`).join('');
+  g.innerHTML=eventsCache.map((ev,i)=>'\n    <div class="fev-item'+(fevSelected.some(s=>s.label===ev.label)?' sel':'')+'" onclick="toggleFev('+(i)+')">'+(esc(ev.label))+'</div>').join('');
 }
 function toggleFev(i){
   const ev=eventsCache[i];
@@ -549,14 +568,7 @@ function renderFevSelected(){
   const el=document.getElementById('fevSelectedArea');
   if(!fevSelected.length){el.innerHTML='';return;}
   el.innerHTML='<div style="font-size:11px;font-weight:700;color:var(--txm);margin:10px 0 8px;letter-spacing:.06em">選択中のイベント</div>'+
-    fevSelected.map((ev,i)=>`
-      <div class="slot-card">
-        <div class="slot-name">${esc(ev.label)}</div>
-        <div class="slot-desc">形式：${esc(ev.format)}　参加費：${esc(ev.fee)}${ev.target?'　対象：'+esc(ev.target):''}</div>
-        ${ev.note?`<div class="slot-desc">${esc(ev.note)}</div>`:''}
-        ${ev.url?`<div class="slot-url">申込：${esc(ev.url)}</div>`:''}
-        <button class="btn btn-d btn-sm" style="margin-top:8px" onclick="removeFev(${i})">✕ 外す</button>
-      </div>`).join('');
+    fevSelected.map((ev,i)=>'\n      <div class="slot-card">\n        <div class="slot-name">'+(esc(ev.label))+'</div>\n        <div class="slot-desc">形式：'+(esc(ev.format))+'　参加費：'+(esc(ev.fee))+(ev.target?'　対象：'+esc(ev.target):'')+'</div>\n        '+(ev.note?'<div class="slot-desc">'+(esc(ev.note))+'</div>':'')+'\n        '+(ev.url?'<div class="slot-url">申込：'+(esc(ev.url))+'</div>':'')+'\n        <button class="btn btn-d btn-sm" style="margin-top:8px" onclick="removeFev('+(i)+')">✕ 外す</button>\n      </div>').join('');
 }
 function removeFev(i){fevSelected.splice(i,1);renderFevGrid();renderFevSelected();document.getElementById('fevb').textContent=fevSelected.length||'0';svd();}
 
@@ -567,7 +579,7 @@ async function loadMunics(){
     const r=await gasCall('listMunicipalities');
     municsCache=r.municipalities||[];st.className='st';
     const opts='<option value="">— 選択してください —</option>'+
-      municsCache.map((m,i)=>`<option value="${i}">${esc(m.name)}</option>`).join('');
+      municsCache.map((m,i)=>'<option value="'+(i)+'">'+(esc(m.name))+'</option>').join('');
     ['mun0','mun1'].forEach(id=>document.getElementById(id).innerHTML=opts);
     // 保存済み選択復元
     munSelected.forEach((m,slot)=>{
@@ -587,12 +599,7 @@ function rendMunCards(){
   const el=document.getElementById('munCards');
   const cards=munSelected.filter(Boolean);
   if(!cards.length){el.innerHTML='';return;}
-  el.innerHTML=cards.map(m=>`
-    <div class="slot-card">
-      <div class="slot-name">${esc(m.name)}</div>
-      <div class="slot-desc">${esc(m.description)}</div>
-      ${m.url?`<div class="slot-url">詳細：${esc(m.url)}</div>`:''}
-    </div>`).join('');
+  el.innerHTML=cards.map(m=>'\n    <div class="slot-card">\n      <div class="slot-name">'+(esc(m.name))+'</div>\n      <div class="slot-desc">'+(esc(m.description))+'</div>\n      '+(m.url?'<div class="slot-url">詳細：'+(esc(m.url))+'</div>':'')+'\n    </div>').join('');
 }
 function updMunBadge(){document.getElementById('munb').textContent=munSelected.filter(Boolean).length||'0';}
 
@@ -600,7 +607,7 @@ function updMunBadge(){document.getElementById('munb').textContent=munSelected.f
 function buildKw(preset){
   akws=new Set(preset||[]);
   document.getElementById('kwchips').innerHTML=ALLKW.map(k=>
-    `<div class="kc${akws.has(k)?' on':''}" onclick="tgkw('${k}',this)">${k}</div>`).join('');
+    '<div class="kc'+(akws.has(k)?' on':'')+'" onclick="tgkw(\''+(k)+'\',this)">'+(k)+'</div>').join('');
   if(arts.length) rendNews();
 }
 function tgkw(k,el){akws.has(k)?(akws.delete(k),el.classList.remove('on')):(akws.add(k),el.classList.add('on'));}
@@ -610,7 +617,7 @@ async function fetchNews(){
   const p=PROG.find(x=>x.v===selv);
   document.getElementById('fnbtn').disabled=true;
   const st=document.getElementById('nwst');st.className='st load';
-  document.getElementById('nwstx').textContent=`「${kws.slice(0,3).join('・')}」で検索中...`;
+  document.getElementById('nwstx').textContent='「'+(kws.slice(0,3).join('・'))+'」で検索中...';
   document.getElementById('ngrid').innerHTML='';arts=[];seln.clear();
   try{
     const r=await gasCall('fetchNews',{keywords:kws,vol:p.v,colTheme:p.col});
@@ -624,14 +631,8 @@ function rendNews(){
   if(!arts.length){g.innerHTML='';updSel();return;}
   g.innerHTML=arts.map((a,i)=>{
     const s=seln.has(i);const st='★'.repeat(a.score||3)+'☆'.repeat(5-(a.score||3));
-    const tags=(a.tags||[]).map(t=>`<span class="nt nt-k">${esc(t)}</span>`).join('');
-    return`<div class="nc${s?' sel':''}" onclick="tgNews(${i})">
-      <div class="ntags">${a.isNew?'<span class="nt nt-n">NEW</span>':''}${a.score>=4?'<span class="nt nt-r">おすすめ</span>':''}${tags}<span class="nstars" style="margin-left:auto">${st}</span></div>
-      <div class="ntitle">${esc(a.title||'')}</div>
-      <div class="nsum">${esc(a.summary||'')}</div>
-      <div class="nrsn">${esc(a.reason||'')}</div>
-      <div class="nft"><span>📰 ${esc(a.source||'')}</span>${a.url&&a.url!=='null'?`<a href="${esc(a.url)}" target="_blank" rel="noopener" style="font-size:10px;color:var(--g)">開く →</a>`:''}</div>
-    </div>`;
+    const tags=(a.tags||[]).map(t=>'<span class="nt nt-k">'+(esc(t))+'</span>').join('');
+    return'<div class="nc'+(s?' sel':'')+'" onclick="tgNews('+(i)+')">\n      <div class="ntags">'+(a.isNew?'<span class="nt nt-n">NEW</span>':'')+(a.score>=4?'<span class="nt nt-r">おすすめ</span>':'')+(tags)+'<span class="nstars" style="margin-left:auto">'+(st)+'</span></div>\n      <div class="ntitle">'+(esc(a.title||''))+'</div>\n      <div class="nsum">'+(esc(a.summary||''))+'</div>\n      <div class="nrsn">'+(esc(a.reason||''))+'</div>\n      <div class="nft"><span>📰 '+(esc(a.source||''))+'</span>'+(a.url&&a.url!=='null'?'<a href="'+(esc(a.url))+'" target="_blank" rel="noopener" style="font-size:10px;color:var(--g)">開く →</a>':'')+'</div>\n    </div>';
   }).join('');updSel();
 }
 function tgNews(i){seln.has(i)?seln.delete(i):seln.add(i);rendNews();svd();}
@@ -684,13 +685,7 @@ function buildSecList(){
   list.innerHTML=SEC_DEFS.map(def=>{
     const has=getSectionHasContent(def.id);
     const val=secNums[def.id]!==undefined?secNums[def.id]:'';
-    return`<div class="sec-item${has?'':' no-content'}" data-id="${def.id}">
-      <input class="sec-num-input" type="number" min="1" max="5" value="${val}"
-        placeholder="—" data-id="${def.id}" oninput="onSecNumInput(this)">
-      <span class="sec-icon">${def.icon}</span>
-      <span class="sec-label">${def.label}</span>
-      <span class="sec-status ${has?'has':'none'}">${has?'入力あり':'未入力'}</span>
-    </div>`;
+    return '<div class="sec-item'+(has?'':' no-content')+'" data-id="'+(def.id)+'">\n      <input class="sec-num-input" type="number" min="1" max="5" value="'+(val)+'"\n        placeholder="—" data-id="'+(def.id)+'" oninput="onSecNumInput(this)">\n      <span class="sec-icon">'+(def.icon)+'</span>\n      <span class="sec-label">'+(def.label)+'</span>\n      <span class="sec-status '+(has?'has':'none')+'">'+(has?'入力あり':'未入力')+'</span>\n    </div>';
   }).join('');
   validateSecNums();
 }
@@ -751,12 +746,7 @@ function buildSecSummary(){
   if(displayed.length){
     displayed.forEach((id,i)=>{
       const def=SEC_DEFS.find(s=>s.id===id);
-      html+=`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd);font-size:13px">
-        <span style="width:22px;height:22px;background:var(--g);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span>
-        <span>${def.icon}</span>
-        <span style="flex:1">${def.label}</span>
-        <span style="font-size:10px;font-weight:700;color:var(--g)">✓ 表示</span>
-      </div>`;
+      html+='<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bd);font-size:13px">\n        <span style="width:22px;height:22px;background:var(--g);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">'+(i+1)+'</span>\n        <span>'+(def.icon)+'</span>\n        <span style="flex:1">'+(def.label)+'</span>\n        <span style="font-size:10px;font-weight:700;color:var(--g)">✓ 表示</span>\n      </div>';
     });
   }
   if(skipped.length){
@@ -771,15 +761,16 @@ async function genHtml(){
   const p=PROG.find(x=>x.v===selv);
   showOv('HTMLメールを生成中...<br>少しお待ちください');
   try{
-    const col=document.getElementById('coltxt').value;
+    // STEP4（テキスト確認）での編集内容を優先
+    const col = (reviewData['col'] !== undefined) ? reviewData['col'] : document.getElementById('coltxt').value;
+    const cityInfo = (reviewData['city'] !== undefined) ? reviewData['city'] : document.getElementById('cityOut').value;
 
-    // 1. まず常にsaveDraft（no-cors POST）でコンテンツを保存
+    // 1. saveDraft（no-cors POST）
     showOv('コンテンツを保存中...');
     await gasCall('saveDraft',{vol:p.v,draft:collectDraft()});
     showOv('HTMLメールを生成中...<br>少しお待ちください');
 
-    // 2. genHtmlはスプシ参照方式でGETペイロードを小さく保つ
-    //    ニュース記事の本文は除外し、タイトル+URLのみ送る
+    // 2. ニュースはタイトル+URLのみ送信（ペイロード節約）
     const newsMin=[...seln].map(i=>({
       title:arts[i].title,
       summary:arts[i].summary,
@@ -789,17 +780,17 @@ async function genHtml(){
 
     const payload={
       vol:p.v, date:p.dt, colTheme:p.col, secOrder,
-      cityInfo:document.getElementById('cityOut').value,
+      cityInfo: cityInfo,
       furunobaEvents:fevSelected,
       munics:munSelected.filter(Boolean),
       selectedNews:newsMin,
-      useStoredColumn:true,  // コラムはスプシから取得
+      useStoredColumn:true,
       storedVol:p.v,
     };
 
     const r=await gasCall('genHtml',payload);
     ghtml=r.html;
-    gsubj=`【公民共創コミュニティふるのば】メールマガジンvol.${String(p.v).padStart(2,'0')}`;
+    gsubj='【公民共創コミュニティふるのば】メールマガジンvol.'+(String(p.v).padStart(2,'0'));
     document.getElementById('subjin').value=gsubj;
     document.getElementById('subjprev').textContent=gsubj;
     document.getElementById('pframe').srcdoc=ghtml;
@@ -823,8 +814,84 @@ function copTxt(){
     .then(()=>{document.getElementById('ocb').classList.add('done');toast('✓ テキスト版をコピーしました');});
 }
 
+// ─── STEP4: テキスト確認・編集 ─────────────
+// 各セクションのテキスト内容を編集可能な形で表示する。
+// reviewData はセクションごとのテキストを保持し、genHtml時に参照される。
+let reviewData = {}; // {sectionId: text}
+
+const REVIEW_DEFS = [
+  { id:'city', icon:'🏛', label:'自治体からの情報提供',   getVal: function(){ return document.getElementById('cityOut').value.trim(); } },
+  { id:'fev',  icon:'🎪', label:'ふるのばイベント案内',   getVal: function(){
+    if(!fevSelected.length) return '';
+    return fevSelected.map(function(ev){
+      return '['+ev.label+']\n日時：'+ev.date+'　形式：'+ev.format+'　参加費：'+ev.fee+
+        (ev.target ? '\n対象：'+ev.target : '')+
+        (ev.note   ? '\n'+ev.note : '')+
+        '\n申込：'+(ev.url||'（後日ご案内）');
+    }).join('\n\n');
+  }},
+  { id:'mun',  icon:'💴', label:'企業版ふるさと納税',     getVal: function(){
+    const sel = munSelected.filter(Boolean);
+    if(!sel.length) return '';
+    return sel.map(function(m){ return '【'+m.name+'】\n'+m.description+'\n詳細：'+m.url; }).join('\n\n');
+  }},
+  { id:'nw',   icon:'📰', label:'ニュースピック',          getVal: function(){
+    if(!seln.size) return '';
+    return Array.from(seln).map(function(i){
+      const a=arts[i];
+      return '・'+a.title+'\n  '+a.summary+(a.url ? '\n  '+a.url : '');
+    }).join('\n\n');
+  }},
+  { id:'col',  icon:'📚', label:'公民共創コラム',          getVal: function(){ return document.getElementById('coltxt').value.trim(); } },
+];
+
+function buildReviewBlocks(){
+  const container = document.getElementById('reviewBlocks');
+  if(!container) return;
+
+  // secOrderに従って並べる
+  const ordered = secOrder.map(function(id){ return REVIEW_DEFS.find(function(d){ return d.id===id; }); }).filter(Boolean);
+
+  container.innerHTML = ordered.map(function(def){
+    const raw = def.getVal();
+    const has = raw.length > 0;
+    // reviewDataに初期値をセット（まだ編集されていない場合）
+    if(reviewData[def.id] === undefined) reviewData[def.id] = raw;
+    const val = reviewData[def.id] !== undefined ? reviewData[def.id] : raw;
+    const rows = Math.max(4, Math.min(16, (val.split('\n').length + 1)));
+    return '<div class="review-block" id="rb-'+def.id+'">'
+      + '<div class="review-block-head" onclick="toggleReview(\''+def.id+'\')">'
+      +   '<span class="review-icon">'+def.icon+'</span>'
+      +   '<span class="review-title">'+def.label+'</span>'
+      +   '<span class="review-badge '+(has?'filled':'empty')+'">'+(has?'入力あり':'未入力')+'</span>'
+      +   '<span class="review-chevron">▼</span>'
+      + '</div>'
+      + '<div class="review-body">'
+      +   (has
+          ? '<textarea class="review-textarea" rows="'+rows+'" data-id="'+def.id+'" oninput="reviewData[this.dataset.id]=this.value">'+esc(val)+'</textarea>'
+            + '<div class="review-hint">✏️ このテキストエリアで直接編集できます。変更はHTMLに反映されます。</div>'
+          : '<div class="review-empty">このセクションは未入力です。STEP2に戻って入力してください。</div>'
+        )
+      + '</div>'
+      + '</div>';
+  }).join('');
+
+  // 入力ありのブロックを自動展開
+  ordered.forEach(function(def){
+    if(def.getVal().length > 0){
+      const block = document.getElementById('rb-'+def.id);
+      if(block) block.classList.add('open');
+    }
+  });
+}
+
+function toggleReview(id){
+  const block = document.getElementById('rb-'+id);
+  if(block) block.classList.toggle('open');
+}
+
 // ─── NAVIGATION ──────────────────────────
-const STEP_MAX=5;
+const STEP_MAX=6;
 function gostep(n){if(n===1||(n>1&&selv))setstep(n);}
 function navnext(){if(step<STEP_MAX)setstep(step+1);}
 function navback(){if(step>1)setstep(step-1);}
@@ -837,14 +904,15 @@ function setstep(n){
   });
   const bb=document.getElementById('btnback'),nb=document.getElementById('btnnext');
   bb.style.display=n>1?'inline-flex':'none';nb.style.display='inline-flex';
-  const msgs=['号数を選択してください','コンテンツを入力してください','セクション順を確認してください','HTMLを確認してください','出力方法を選んでください'];
-  const labels=['次へ →','セクション順へ →','プレビューへ →','出力へ →',''];
+  const msgs=['号数を選択してください','コンテンツを入力してください','セクション順を確認してください','内容を確認・編集してください','HTMLを確認してください','出力方法を選んでください'];
+  const labels=['次へ →','セクション順へ →','テキスト確認へ →','HTMLを生成する →','出力へ →',''];
   document.getElementById('navinfo').textContent=msgs[n-1];
   if(n===STEP_MAX){nb.style.display='none';}
   else{nb.textContent=labels[n-1];nb.disabled=(n===1&&!selv);}
   if(n===1)nb.disabled=!selv;
   if(n===3){if(Object.keys(secNums).length===0)resetSecNums();buildSecList();}
-  if(n===4&&!ghtml)genHtml();
+  if(n===4)buildReviewBlocks();
+  if(n===5&&!ghtml)genHtml();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function swtab(name,el){
@@ -854,98 +922,27 @@ function swtab(name,el){
 }
 
 // ─── INIT ────────────────────────────────
-// ─── Google認証 ──────────────────────────
-let _idToken = null;
-let _tokenExpiry = 0;
-
-async function getIdToken() {
-  // 有効なトークンがあればそのまま使う（有効期限5分前まで）
-  if (_idToken && Date.now() < _tokenExpiry - 300000) return _idToken;
-  // 期限切れ or 未取得 → 再サインイン
-  return new Promise((resolve, reject) => {
-    if (!window.google) { reject(new Error('Google認証ライブラリが読み込まれていません')); return; }
-    google.accounts.id.prompt(notification => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        reject(new Error('ログインが必要です。再度サインインしてください。'));
-        showLoginOverlay();
-      }
-    });
-    // promptは非同期で credential を返さないのでresolveはcallback側で行う
-    // 既にトークンがある場合はそのまま返す
-    if (_idToken) resolve(_idToken);
-    else reject(new Error('ログインが必要です'));
-  });
-}
-
-function onGoogleCredential(response) {
-  _idToken = response.credential;
-  // JWTのペイロードから有効期限を取得
+// ─── INIT ────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+  buildProg(); // 読み込み中表示
   try {
-    const payload = JSON.parse(atob(_idToken.split('.')[1]));
-    _tokenExpiry = payload.exp * 1000;
-    const email = payload.email;
-    // ログイン成功 → オーバーレイ非表示
-    document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('loginError').style.display = 'none';
-    initApp();
-  } catch(e) {
-    showLoginError('認証情報の解析に失敗しました');
-  }
-}
-
-function showLoginOverlay() {
-  document.getElementById('loginOverlay').style.display = 'flex';
-}
-function showLoginError(msg) {
-  const el = document.getElementById('loginError');
-  el.textContent = msg; el.style.display = 'block';
-}
-
-async function initApp() {
-  if(!GAS_URL||GAS_URL==='YOUR_GAS_WEBAPP_URL_HERE')
-    document.getElementById('setupBanner').classList.add('show');
-  buildProg();
-  try{
-    const r=await gasCall('listDrafts');
-    draftVols=new Set((r.drafts||[]).map(d=>String(d.vol)));buildProg();
-  }catch(e){
-    // 認証エラーの場合はログイン画面を表示
-    if(e.message&&e.message.includes('ログイン')) showLoginOverlay();
-  }
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  if(!GAS_URL||GAS_URL==='YOUR_GAS_WEBAPP_URL_HERE'||!GOOGLE_CLIENT_ID||GOOGLE_CLIENT_ID==='YOUR_GOOGLE_CLIENT_ID_HERE') {
-    document.getElementById('setupBanner').classList.add('show');
+    // 番組表とドラフト一覧を並行取得
+    const [progRes, draftRes] = await Promise.all([
+      gasCall('listProgramme'),
+      gasCall('listDrafts').catch(() => ({ drafts: [] })),
+    ]);
+    if (progRes.programme && progRes.programme.length) {
+      PROG = progRes.programme;
+      // キーワードはphaseから自動設定（スプシに列がない場合のデフォルト）
+      PROG.forEach(function(p) {
+        if (!p.kw) p.kw = KW_DEFAULTS[p.ph] || ['公民共創','地方創生'];
+      });
+    }
+    draftVols = new Set((draftRes.drafts||[]).map(function(d){ return String(d.vol); }));
     buildProg();
-    return;
-  }
-  // Google GSIの初期化
-  const initGSI = () => {
-    google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: onGoogleCredential,
-      auto_select: true,  // 以前ログイン済みなら自動サインイン
-    });
-    // サインインボタンをレンダリング
-    google.accounts.id.renderButton(
-      document.getElementById('googleSignInBtn'),
-      { theme: 'outline', size: 'large', text: 'signin_with', locale: 'ja' }
-    );
-    // 自動サインインを試みる（失敗したらオーバーレイ表示）
-    google.accounts.id.prompt(notification => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        showLoginOverlay();
-      }
-    });
-  };
-  // GSIライブラリのロード待ち
-  if (window.google && window.google.accounts) {
-    initGSI();
-  } else {
-    const script = document.querySelector('script[src*="gsi/client"]');
-    if (script) script.addEventListener('load', initGSI);
-    else { showLoginOverlay(); buildProg(); }
+  } catch(e) {
+    console.warn('初期化エラー:', e.message);
+    buildProg();
   }
 });
 </script>
